@@ -818,7 +818,7 @@
 
             if (std.schools) {
                 const sch = std.schools;
-                document.getElementById('hdr-region-name').innerText = sch.region || '-';
+                document.getElementById('hdr-region-name').innerText = sch.education_dept || sch.region || '-';
                 document.getElementById('hdr-school-name').innerText = sch.school_name || '-';
                 document.getElementById('principal-name').innerText = sch.principal_name || sch.manager_name || sch.principal || '-';
 
