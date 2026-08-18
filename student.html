@@ -778,58 +778,46 @@
         }
 
         function renderData(std) {
-            const hijriToday = getHijriDateToday();
-            document.querySelectorAll('.current-date').forEach(el => el.innerText = hijriToday);
+    // 1. تحديث التاريخ
+    const hijriToday = getHijriDateToday();
+    document.querySelectorAll('.current-date').forEach(el => el.innerText = hijriToday);
 
-            document.getElementById('lbl-student-name').innerText = std.student_name || std.name || '-';
-            document.getElementById('lbl-student-stage').innerText = std.stage || std.grade_and_stage || '-';
-            document.getElementById('lbl-student-grade').innerText = std.grade || '-';
-            document.getElementById('parent-phone-input').value = std.parent_phone || '';
-            
-            if (std.parent_name) document.getElementById('parent-name-input').value = std.parent_name;
-            if (std.parent_job) document.getElementById('parent-job-input').value = std.parent_job;
-            if (std.parent_alt_phone) document.getElementById('parent-alt-phone-input').value = std.parent_alt_phone;
+    // 2. بيانات الطالب الأساسية (تأكد أن أسماء الحقول تطابق ما هو في قاعدة البيانات)
+    document.getElementById('lbl-student-name').innerText = std.student_name || std.name || '-';
+    document.getElementById('lbl-student-stage').innerText = std.stage || std.grade_and_stage || '-';
+    document.getElementById('lbl-student-grade').innerText = std.grade || '-';
 
-            if (std.student_signature) {
-                const img = new Image();
-                img.onload = () => {
-                    stdCanvas.getContext('2d').drawImage(img, 0, 0);
-                    isStudentSigned = true;
-                    checkSignaturesStatus();
-                };
-                img.src = std.student_signature;
-            }
+    // 3. تحديث الحقول التي يعدلها المدير لتظهر للطالب
+    // نستخدم (std.field || '') لضمان عدم ظهور كلمة undefined في حال كانت فارغة
+    if (document.getElementById('parent-name-input')) 
+        document.getElementById('parent-name-input').value = std.parent_name || '';
+    
+    if (document.getElementById('parent-phone-input')) 
+        document.getElementById('parent-phone-input').value = std.parent_phone || '';
+        
+    if (document.getElementById('parent-job-input')) 
+        document.getElementById('parent-job-input').value = std.parent_job || '';
 
-            if (std.parent_signature) {
-                const img = new Image();
-                img.onload = () => {
-                    prnCanvas.getContext('2d').drawImage(img, 0, 0);
-                    isParentSigned = true;
-                    checkSignaturesStatus();
-                };
-                img.src = std.parent_signature;
-            }
+    // 4. تحديث بيانات المدرسة (التي قد يغيرها المدير)
+    if (std.schools) {
+        const sch = std.schools;
+        const regEl = document.getElementById('hdr-region-name');
+        const schEl = document.getElementById('hdr-school-name');
+        const priEl = document.getElementById('principal-name');
+        
+        if (regEl) regEl.innerText = sch.region || ' ';
+        if (schEl) schEl.innerText = sch.school_name || '-';
+        if (priEl) priEl.innerText = sch.principal_name || sch.manager_name || '-';
+    }
 
-            if (std.signed === true) {
-                isStudentSigned = true;
-                isParentSigned = true;
-                checkSignaturesStatus();
-            }
-
-            if (std.schools) {
-                const sch = std.schools;
-                document.getElementById('hdr-region-name').innerText = sch.region || 'عسير';
-                document.getElementById('hdr-school-name').innerText = sch.school_name || '-';
-                document.getElementById('principal-name').innerText = sch.principal_name || sch.manager_name || sch.principal || '-';
-
-                const sigContainer = document.getElementById('principal-sig-container');
-                if (sch.reflect_signature && sch.signature_url) {
-                    sigContainer.innerHTML = `<img src="${sch.signature_url}" alt="توقيع المدير/ة">`;
-                } else {
-                    sigContainer.innerHTML = '';
-                }
-            }
-        }
+    // 5. حالة التوقيع (إذا اعتمد المدير العقد)
+    if (std.signed === true) {
+        isStudentSigned = true;
+        isParentSigned = true;
+        checkSignaturesStatus();
+        freezeForm(); // قفل الصفحة إذا كانت معتمدة
+    }
+}
 
         async function submitSignature() {
             if (!currentStudentData) return;
