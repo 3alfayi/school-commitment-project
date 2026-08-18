@@ -732,11 +732,12 @@
             }
 
             try {
-                const { data: std, error } = await _supabase
-                    .from('students')
-                    .select('*, schools(*)')
-                    .eq('national_id', nationalId)
-                    .single();
+               // ابحث عن استعلام مشابه لهذا في صفحة الطالب وقم بتعديله ليطابق هذا الشكل:
+const { data, error } = await _supabase
+    .from('students')
+    .select('*, schools(*)') // <-- هذا هو السطر الأهم لجلب بيانات المدرسة والإدارة معاً
+    .eq('id', studentId)
+    .single();
 
                 if (error || !std) {
                     errDiv.innerText = 'رقم الهوية غير صحيح أو غير مسجل بالمنظومة.';
