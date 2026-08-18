@@ -332,7 +332,7 @@
                 if (phoneFormatted.startsWith('05')) phoneFormatted = '966' + phoneFormatted.substring(1);
                 
                 const siteUrl = window.location.origin;
-                const signLink = `${siteUrl}/student_sign.html?id=${s.id}`;
+                const signLink = `${siteUrl}/student.html?id=${s.id}`;
                 const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الرابط التالي:\n${signLink}`);
                 const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
 
