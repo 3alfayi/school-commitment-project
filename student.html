@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استمارة الالتزام المدرسي والزي الرسمي 1448هـ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --moe-header-bg: #004d40;
+            --moe-text: #002B49;
+            --bg-page: #f2f4f7;
+            --border-color: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-page);
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: #1e293b;
+        }
+
+        .top-navbar {
+            background-color: var(--moe-header-bg);
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .top-navbar .title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .nav-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .login-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+        }
+        .login-card h2 {
+            font-size: 1.25rem;
+            color: var(--moe-text);
+            margin-bottom: 8px;
+        }
+        .login-card p {
+            font-size: 0.88rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Tajawal';
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .login-card .btn-submit {
+            width: 100%;
+            padding: 10px;
+            background-color: #059669;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Tajawal';
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .login-card .btn-home {
+            width: 100%;
+            padding: 9px;
+            background-color: #64748b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Tajawal';
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.82rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .paper-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 12mm 15mm;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            position: relative;
+            display: none;
+        }
+
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px dashed #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .doc-header .gov-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 3px;
+        }
+        .doc-header .school-info {
+            font-size: 0.85rem;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        .doc-header .form-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--moe-text);
+            background: #f8fafc;
+            display: inline-block;
+            padding: 4px 18px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .qr-section {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .qr-item {
+            text-align: center;
+            width: 30%;
+        }
+        .qr-item img {
+            width: 75px;
+            height: 75px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 2px;
+            object-fit: contain;
+        }
+        .qr-item span {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        .section-box {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            background-color: #fafafa;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--moe-text);
+            margin-bottom: 4px;
+        }
+        .section-text {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #334155;
+            margin-bottom: 6px;
+            text-align: justify;
+        }
+
+        .signature-box {
+            background-color: #ffffff;
+            border: 1px dashed #94a3b8;
+            border-radius: 6px;
+            padding: 2px;
+            text-align: center;
+            position: relative;
+        }
+        .signature-box canvas {
+            width: 100%;
+            height: 65px;
+            background-color: #fff;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 2px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-family: 'Tajawal';
+            font-size: 0.8rem;
+        }
+        .input-group input:disabled {
+            background-color: #f1f5f9;
+            color: #334155;
+            cursor: not-allowed;
+        }
+
+        .date-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: left;
+            margin-top: 2px;
+            font-weight: 700;
+        }
+
+        .footer-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 10px;
+            padding-top: 6px;
+            border-top: 1px solid #e2e8f0;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .principal-sig-block {
+            text-align: right;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--moe-text);
+        }
+        .principal-sig-block .sig-img-wrap {
+            height: 45px;
+            margin-top: 3px;
+        }
+        .principal-sig-block img {
+            max-height: 45px;
+            object-fit: contain;
+        }
+        .contract-status-badge {
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .actions-bar {
+            display: none;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px auto;
+        }
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Tajawal';
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-green { background-color: #059669; color: white; }
+        .btn-clear { background-color: #ef4444; color: white; }
+        .btn-navy { background-color: #0f172a; color: white; }
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-gray { background-color: #475569; color: white; }
+
+        .btn:disabled {
+            background-color: #94a3b8 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        @media print {
+            html, body {
+                width: 210mm;
+                height: 297mm;
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: hidden !important;
+            }
+            .top-navbar, .actions-bar, .sig-tools-btn, .login-overlay { 
+                display: none !important; 
+            }
+            .paper-container {
+                display: block !important;
+                width: 100% !important;
+                height: 100vh !important;
+                max-height: 297mm !important;
+                margin: 0 !important;
+                padding: 10mm 12mm !important;
+                box-shadow: none !important;
+                border: none !important;
+                box-sizing: border-box !important;
+            }
+            input {
+                border: none !important;
+                background: transparent !important;
+                font-weight: bold;
+                padding: 0 !important;
+            }
+            .signature-box canvas {
+                height: 60px !important;
+            }
+            .qr-item img {
+                width: 65px !important;
+                height: 65px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-navbar">
+        <span class="title">بوابة التوقيع الإلكتروني للعقود السلوكية</span>
+        <div class="nav-btns">
+            <a href="index.html" class="btn btn-gray" style="padding:4px 12px; font-size:0.8rem;">الرئيسية 🏠</a>
+            <button class="btn btn-clear" id="logout-nav-btn" onclick="logout()" style="display:none; padding:4px 12px; font-size:0.8rem;">تسجيل الخروج 🚪</button>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل الدخول برقم الهوية -->
+    <div class="login-overlay" id="login-modal">
+        <div class="login-card">
+            <h2>التحقق من الهوية</h2>
+            <p>يرجى إدخال رقم السجل المدني / الإقامة للطالب/ـة للاستمرار</p>
+            <input type="text" id="national-id-input" placeholder="أدخل رقم الهوية (10 أرقام)" maxlength="10">
+            <button class="btn-submit" onclick="verifyNationalId()">دخول وعرض الاستمارة 🔐</button>
+            <a href="index.html" class="btn-home">العودة للصفحة الرئيسية 🏠</a>
+            <div class="error-msg" id="login-error">رقم الهوية غير صحيح أو غير مسجل في النظام.</div>
+        </div>
+    </div>
+
+    <!-- استمارة العقد A4 -->
+    <div class="paper-container" id="paper-doc">
+        <!-- الهيدر الرسمي -->
+        <div class="doc-header">
+            <div class="gov-title">المملكة العربية السعودية - وزارة التعليم</div>
+            <div class="school-info">الإدارة العامة للتعليم بمنطقة <span id="hdr-region-name">.......</span> | مدرسة: <span id="hdr-school-name">جاري التحميل...</span></div>
+            <div class="form-title">استمارة الالتزام المدرسي والزي الرسمي 1448هـ</div>
+        </div>
+
+        <!-- باركودات QR -->
+        <div class="qr-section">
+            <div class="qr-item">
+                <img id="qr-img-1" src="q1.png" alt="قواعد السلوك والمواظبة">
+                <span>قواعد السلوك والمواظبة الإصدار الخامس</span>
+            </div>
+            <div class="qr-item">
+                <img id="qr-img-2" src="q2.png" alt="لائحة حماية الطفل">
+                <span>لائحة حماية الطفل</span>
+            </div>
+            <div class="qr-item">
+                <img id="qr-img-3" src="q3.png" alt="دليل الزي الرسمي">
+                <span>دليل الزي الرسمي</span>
+            </div>
+        </div>
+
+        <!-- قسم الطالب/ـة -->
+        <div class="section-box">
+            <div class="section-title">خاص بالطالب / الطالبة:</div>
+            <div class="section-text">
+                اسم الطالب/ـة: <b id="lbl-student-name">...</b> | المرحلة: <b id="lbl-student-stage">...</b> | الصف: <b id="lbl-student-grade">...</b><br>
+                نعم أنا الطالب/ـة الموضح اسمه/ـا وبياناته/ـا أعلاه، قد اطلعت على محتوى قواعد السلوك والمواظبة وبناء عليه أتعهد أن ألتزم بالأنظمة والتعليمات الخاصة بقواعد السلوك والمواظبة. وأتعهد بالالتزام بالزي الرسمي للمدرسة.
+            </div>
+            
+            <div class="section-title">✍️ التوقيع (الطالب/ـة):</div>
+            <div class="signature-box">
+                <canvas id="student-canvas"></canvas>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                <div class="sig-action-buttons">
+                    <button type="button" class="btn btn-clear sig-tools-btn" onclick="clearCanvas('student-canvas')" style="padding:3px 10px; font-size:0.75rem;">مسح 🗑️</button>
+                    <button type="button" class="btn btn-blue sig-tools-btn" onclick="confirmSingleSignature('student')" style="padding:3px 10px; font-size:0.75rem;">اعتماد وتأكيد التوقيع ✅</button>
+                </div>
+                <div class="date-label">التاريخ: <span class="current-date">-- / -- / ---- هـ</span></div>
+            </div>
+        </div>
+
+        <!-- قسم ولي/ة الأمر -->
+        <div class="section-box">
+            <div class="section-title">خاص بولي / ولية الأمر:</div>
+            <div class="section-text">
+                نعم أنا ولي/ـة أمر الطالب/ـة الموضح اسمه/ـا وبياناته/ـا أعلاه، قد اطلعت على محتوى قواعد السلوك والمواظبة وبناء عليه أتعهد بأن أتعاون مع إدارة المدرسة في سبيل مصلحة ابني/ابنتي، ليكون/لتكون ملتزماً/ملتزمة بالأنظمة والتعليمات الخاصة بقواعد السلوك والمواظبة، وأتعهد بالتزام الطالب/ـة بالزي الرسمي حسب الدليل الموضح في الباركود المرفق.<br>
+                كما نرفق دليل نظام حماية المتعلمين والطفل، ونأمل منكم التكرم بالاطلاع عليه؛ لما يتضمنه من معلومات وإرشادات تسهم في تعزيز حماية وسلامة أبنائنا وبناتنا، وبما يدعم الشراكة بين الأسرة والمدرسة في توفير بيئة تعليمية آمنة.<br>
+                <b>وأتحمل مسؤولية صحة أرقام التواصل التالية:</b>
+            </div>
+
+            <div class="inputs-grid">
+                <div class="input-group">
+                    <label>الاسم (ولي/ـة الأمر):</label>
+                    <input type="text" id="parent-name-input" placeholder="أدخل الاسم الثلاثي">
+                </div>
+                <div class="input-group">
+                    <label>العمل:</label>
+                    <input type="text" id="parent-job-input" placeholder="جهة العمل">
+                </div>
+                <div class="input-group">
+                    <label>رقم الجوال:</label>
+                    <input type="text" id="parent-phone-input" placeholder="05xxxxxxxx" maxlength="10">
+                </div>
+                <div class="input-group">
+                    <label>رقم آخر:</label>
+                    <input type="text" id="parent-alt-phone-input" placeholder="رقم إضافي">
+                </div>
+            </div>
+
+            <div class="section-title">✍️ التوقيع (ولي/ة الأمر):</div>
+            <div class="signature-box">
+                <canvas id="parent-canvas"></canvas>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                <div class="sig-action-buttons">
+                    <button type="button" class="btn btn-clear sig-tools-btn" onclick="clearCanvas('parent-canvas')" style="padding:3px 10px; font-size:0.75rem;">مسح 🗑️</button>
+                    <button type="button" class="btn btn-blue sig-tools-btn" onclick="confirmSingleSignature('parent')" style="padding:3px 10px; font-size:0.75rem;">اعتماد وتأكيد التوقيع ✅</button>
+                </div>
+                <div class="date-label">التاريخ: <span class="current-date">-- / -- / ---- هـ</span></div>
+            </div>
+        </div>
+
+        <!-- التذييل وسحب توقيع المدير -->
+        <div class="footer-status-row">
+            <div class="principal-sig-block">
+                مدير/ة المدرسة: <span id="principal-name">...</span>
+                <div class="sig-img-wrap" id="principal-sig-container"></div>
+            </div>
+            <div class="contract-status-badge" id="contract-status-text">
+                حالة العقد: بانتظار إكمال التوقيعات ⏳
+            </div>
+        </div>
+    </div>
+
+    <!-- شريط أزرار التحكم -->
+    <div class="actions-bar" id="actions-bar">
+        <button class="btn btn-green" id="save-btn" onclick="submitSignature()">حفظ واستكمال العقد بالكامل 💾</button>
+        <button class="btn btn-navy" id="print-btn" onclick="triggerPrint()" disabled title="الطباعة مقتصرة فقط بعد اكتمال التوقيعات">طباعة الاستمارة (A4) 🖨️</button>
+        <a href="index.html" class="btn btn-gray">الصفحة الرئيسية 🏠</a>
+        <button class="btn btn-clear" onclick="logout()">إلغاء وخروج 🚪</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://fpfsdqgmtgeetwecxtpl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwZnNkcWdtdGdlZXR3ZWN4dHBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODk0NzYsImV4cCI6MjEwMjU2NTQ3Nn0.ofEm1s2OyFeey7D9ps_DtM4srB2Bt3qLEFkCp_q5VHo';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentStudentData = null;
+        let isStudentSigned = false;
+        let isParentSigned = false;
+        let isFormLocked = false;
+        let canvasInitialized = false;
+
+        const stdCanvas = document.getElementById('student-canvas');
+        const prnCanvas = document.getElementById('parent-canvas');
+
+        function getHijriDateToday() {
+            try {
+                const today = new Date();
+                const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                });
+                const formattedParts = formatter.formatToParts(today);
+                let day = '', month = '', year = '';
+                
+                for (const part of formattedParts) {
+                    if (part.type === 'day') day = part.value;
+                    if (part.type === 'month') month = part.value;
+                    if (part.type === 'year') year = part.value;
+                }
+                
+                return `${year}/${month}/${day} هـ`;
+            } catch (e) {
+                return new Date().toLocaleDateString('ar-SA') + ' هـ';
+            }
+        }
+
+        function isCanvasBlank(canvas) {
+            const context = canvas.getContext('2d');
+            const pixelBuffer = new Uint32Array(
+                context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+            );
+            return !pixelBuffer.some(color => color !== 0);
+        }
+
+        function checkSignaturesStatus() {
+            const printBtn = document.getElementById('print-btn');
+            const statusText = document.getElementById('contract-status-text');
+            
+            if (isStudentSigned && isParentSigned) {
+                printBtn.disabled = false;
+                printBtn.title = "يمكنك الآن طباعة العقد";
+                statusText.innerHTML = '<span style="color:#059669;">حالة العقد: تم التوقيع إلكترونياً ✅</span>';
+            } else {
+                printBtn.disabled = true;
+                printBtn.title = "الطباعة مقتصرة فقط بعد اكتمال التوقيعين اعتماداً";
+                statusText.innerHTML = '<span style="color:#d97706;">حالة العقد: بانتظار إكمال التوقيعات ⏳</span>';
+            }
+        }
+
+        function resetFormState() {
+            isFormLocked = false;
+            isStudentSigned = false;
+            isParentSigned = false;
+
+            document.querySelectorAll('.inputs-grid input').forEach(input => {
+                input.disabled = false;
+                input.value = '';
+            });
+
+            document.querySelectorAll('.sig-action-buttons').forEach(el => {
+                el.style.display = 'block';
+            });
+
+            stdCanvas.style.pointerEvents = 'auto';
+            prnCanvas.style.pointerEvents = 'auto';
+
+            const stdCtx = stdCanvas.getContext('2d');
+            const prnCtx = prnCanvas.getContext('2d');
+            stdCtx.clearRect(0, 0, stdCanvas.width, stdCanvas.height);
+            prnCtx.clearRect(0, 0, prnCanvas.width, prnCanvas.height);
+
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.innerText = 'حفظ واستكمال العقد بالكامل 💾';
+            saveBtn.style.backgroundColor = '#059669';
+            saveBtn.disabled = false;
+
+            checkSignaturesStatus();
+        }
+
+        function freezeForm() {
+            isFormLocked = true;
+            document.querySelectorAll('.inputs-grid input').forEach(input => {
+                input.disabled = true;
+            });
+
+            document.querySelectorAll('.sig-action-buttons').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            stdCanvas.style.pointerEvents = 'none';
+            prnCanvas.style.pointerEvents = 'none';
+
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.innerText = 'تم إرسال العقد مسبقاً ✅';
+            saveBtn.style.backgroundColor = '#64748b';
+            saveBtn.disabled = true;
+        }
+
+        function confirmSingleSignature(type) {
+            if (isFormLocked) return;
+            if (type === 'student') {
+                if (isCanvasBlank(stdCanvas)) {
+                    alert('يرجى التوقيع في المربع المخصص للطالب/ـة أولاً ثم الضغط على الاعتماد.');
+                    return;
+                }
+                isStudentSigned = true;
+                alert('تم اعتماد توقيع الطالب/ـة بنجاح ✅');
+            } else if (type === 'parent') {
+                if (isCanvasBlank(prnCanvas)) {
+                    alert('يرجى التوقيع في المربع المخصص لولي/ـة الأمر أولاً ثم الضغط على الاعتماد.');
+                    return;
+                }
+                isParentSigned = true;
+                alert('تم اعتماد توقيع ولي/ـة الأمر بنجاح ✅');
+            }
+            checkSignaturesStatus();
+        }
+
+        function clearCanvas(id) {
+            if (isFormLocked) return;
+            const c = document.getElementById(id);
+            const ctx = c.getContext('2d');
+            ctx.clearRect(0, 0, c.width, c.height);
+
+            if (id === 'student-canvas') {
+                isStudentSigned = false;
+            } else if (id === 'parent-canvas') {
+                isParentSigned = false;
+            }
+            checkSignaturesStatus();
+        }
+
+        function triggerPrint() {
+            if (!isStudentSigned || !isParentSigned) {
+                alert('عذراً، لا يمكن الطباعة إلا بعد توقيع الطالب وولي الأمر واكتمال الاعتماد.');
+                return;
+            }
+            window.print();
+        }
+
+        window.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                if (!isStudentSigned || !isParentSigned) {
+                    e.preventDefault();
+                    alert('عذراً، لا يمكن الطباعة إلا بعد توقيع الطالب وولي الأمر واكتمال الاعتماد.');
+                }
+            }
+        });
+
+        function applyActualQRCodes() {
+            const loadSmartImage = (imgId, baseNames) => {
+                const imgEl = document.getElementById(imgId);
+                const extensions = ['png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG'];
+                let nameIdx = 0;
+                let extIdx = 0;
+
+                function tryNext() {
+                    if (nameIdx < baseNames.length) {
+                        const currentBase = baseNames[nameIdx];
+                        const currentExt = extensions[extIdx];
+                        imgEl.src = `${currentBase}.${currentExt}`;
+                        
+                        extIdx++;
+                        if (extIdx >= extensions.length) {
+                            extIdx = 0;
+                            nameIdx++;
+                        }
+                    } else {
+                        imgEl.onerror = null;
+                    }
+                }
+
+                imgEl.onerror = tryNext;
+                tryNext();
+            };
+
+            loadSmartImage('qr-img-1', ['q1', 'qr1']);
+            loadSmartImage('qr-img-2', ['q2', 'qr2']);
+            loadSmartImage('qr-img-3', ['q3', 'qr3']);
+        }
+
+        function setupCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+
+            function resize() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = 65;
+            }
+
+            resize();
+
+            canvas.addEventListener('mousedown', () => { if (!isFormLocked) isDrawing = true; });
+            canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
+            canvas.addEventListener('mousemove', draw);
+
+            canvas.addEventListener('touchstart', () => { if (!isFormLocked) isDrawing = true; });
+            canvas.addEventListener('touchend', () => { isDrawing = false; ctx.beginPath(); });
+            canvas.addEventListener('touchmove', draw);
+
+            function draw(e) {
+                if (!isDrawing || isFormLocked) return;
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+        }
+
+        async function verifyNationalId() {
+            const nationalId = document.getElementById('national-id-input').value.trim();
+            const errDiv = document.getElementById('login-error');
+            errDiv.style.display = 'none';
+
+            if (!nationalId || nationalId.length < 8) {
+                errDiv.innerText = 'يرجى كتابة رقم الهوية بشكل صحيح.';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const { data: std, error } = await _supabase
+                    .from('students')
+                    .select('*, schools(*)')
+                    .eq('national_id', nationalId)
+                    .single();
+
+                if (error || !std) {
+                    errDiv.innerText = 'رقم الهوية غير صحيح أو غير مسجل بالمنظومة.';
+                    errDiv.style.display = 'block';
+                    return;
+                }
+
+                currentStudentData = std;
+
+                document.getElementById('login-modal').style.display = 'none';
+                document.getElementById('paper-doc').style.display = 'block';
+                document.getElementById('actions-bar').style.display = 'flex';
+                document.getElementById('logout-nav-btn').style.display = 'inline-block';
+
+                // تنظيف الواجهة أولاً
+                resetFormState();
+                applyActualQRCodes();
+                
+                if (!canvasInitialized) {
+                    setupCanvas(stdCanvas);
+                    setupCanvas(prnCanvas);
+                    canvasInitialized = true;
+                }
+
+                // عرض البيانات وتطبيق القفل مباشرة إذا كان موقّعاً
+                renderData(std);
+
+                if (std.signed === true) {
+                    freezeForm();
+                    setTimeout(() => {
+                        alert('تنبيه: تم اعتماد وتوقيع هذا العقد مسبقاً، ولا يمكن التعديل عليه.');
+                    }, 200);
+                }
+
+            } catch (e) {
+                errDiv.innerText = 'حدث خطأ بالاتصال، يرجى المحاولة لاحقاً.';
+                errDiv.style.display = 'block';
+            }
+        }
+
+        function renderData(std) {
+            const hijriToday = getHijriDateToday();
+            document.querySelectorAll('.current-date').forEach(el => el.innerText = hijriToday);
+
+            document.getElementById('lbl-student-name').innerText = std.student_name || std.name || '-';
+            document.getElementById('lbl-student-stage').innerText = std.stage || std.grade_and_stage || '-';
+            document.getElementById('lbl-student-grade').innerText = std.grade || '-';
+            document.getElementById('parent-phone-input').value = std.parent_phone || '';
+            
+            if (std.parent_name) document.getElementById('parent-name-input').value = std.parent_name;
+            if (std.parent_job) document.getElementById('parent-job-input').value = std.parent_job;
+            if (std.parent_alt_phone) document.getElementById('parent-alt-phone-input').value = std.parent_alt_phone;
+
+            if (std.student_signature) {
+                const img = new Image();
+                img.onload = () => {
+                    stdCanvas.getContext('2d').drawImage(img, 0, 0);
+                    isStudentSigned = true;
+                    checkSignaturesStatus();
+                };
+                img.src = std.student_signature;
+            }
+
+            if (std.parent_signature) {
+                const img = new Image();
+                img.onload = () => {
+                    prnCanvas.getContext('2d').drawImage(img, 0, 0);
+                    isParentSigned = true;
+                    checkSignaturesStatus();
+                };
+                img.src = std.parent_signature;
+            }
+
+            if (std.signed === true) {
+                isStudentSigned = true;
+                isParentSigned = true;
+                checkSignaturesStatus();
+            }
+
+            if (std.schools) {
+                const sch = std.schools;
+                document.getElementById('hdr-region-name').innerText = sch.region || 'عسير';
+                document.getElementById('hdr-school-name').innerText = sch.school_name || '-';
+                document.getElementById('principal-name').innerText = sch.principal_name || sch.manager_name || sch.principal || '-';
+
+                const sigContainer = document.getElementById('principal-sig-container');
+                if (sch.reflect_signature && sch.signature_url) {
+                    sigContainer.innerHTML = `<img src="${sch.signature_url}" alt="توقيع المدير/ة">`;
+                } else {
+                    sigContainer.innerHTML = '';
+                }
+            }
+        }
+
+        async function submitSignature() {
+            if (!currentStudentData) return;
+
+            if (isFormLocked || currentStudentData.signed === true) {
+                alert('تم إرسال هذا العقد واعتماده مسبقاً، ولا يمكن إعادة الإرسال.');
+                return;
+            }
+
+            if (!isStudentSigned || !isParentSigned) {
+                alert('يلزم الاعتماد والتوقيع من الطالب وولي الأمر معاً قبل حفظ وتأكيد العقد.');
+                return;
+            }
+
+            const parentName = document.getElementById('parent-name-input').value.trim();
+            const parentJob = document.getElementById('parent-job-input').value.trim();
+            const parentPhone = document.getElementById('parent-phone-input').value.trim();
+            const parentAltPhone = document.getElementById('parent-alt-phone-input').value.trim();
+
+            if (!parentName || !parentPhone) {
+                alert('يرجى تعبئة اسم ولي/ة الأمر ورقم الجوال قبل الحفظ.');
+                return;
+            }
+
+            const stdSigImg = stdCanvas.toDataURL('image/png');
+            const prnSigImg = prnCanvas.toDataURL('image/png');
+
+            let payload = {
+                signed: true,
+                parent_name: parentName,
+                parent_phone: parentPhone,
+                parent_job: parentJob,
+                parent_alt_phone: parentAltPhone,
+                student_signature: stdSigImg,
+                parent_signature: prnSigImg
+            };
+
+            try {
+               let { error } = await _supabase
+    .from('students')
+    .update(payload)
+    .eq('national_id', currentStudentData.national_id); // التحديث برقم الهوية مباشرة لضمان الدقة
+
+                if (error && error.message.includes('schema cache')) {
+                    delete payload.parent_name;
+                    delete payload.parent_phone;
+                    delete payload.parent_job;
+                    delete payload.parent_alt_phone;
+
+                   const retry = await _supabase
+    .from('students')
+    .update(payload)
+    .eq('national_id', currentStudentData.national_id); // <-- هنا أيضاً
+
+                    error = retry.error;
+                }
+
+                if (error) throw error;
+
+                alert('تم حفظ واعتماد التوقيعات بنجاح!');
+                currentStudentData.signed = true;
+                freezeForm();
+            } catch (err) {
+                alert('خطأ أثناء عملية الحفظ: ' + err.message);
+            }
+        }
+
+        function logout() {
+            currentStudentData = null;
+            resetFormState();
+
+            document.getElementById('national-id-input').value = '';
+            document.getElementById('paper-doc').style.display = 'none';
+            document.getElementById('actions-bar').style.display = 'none';
+            document.getElementById('logout-nav-btn').style.display = 'none';
+            document.getElementById('login-modal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

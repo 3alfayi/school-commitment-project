@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم مدير المدرسة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --moe-navy: #002B49; --moe-green: #006747; --bg-light: #F4F6F9; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-light); margin: 0; padding: 20px; direction: rtl; }
+        header { background-color: var(--moe-navy); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px; }
+        .container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h3 { color: var(--moe-navy); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 10px; }
+        .info-card { background: #f8f9fa; padding: 12px; border-radius: 8px; border-right: 4px solid var(--moe-green); }
+        .info-card label { font-size: 0.85rem; color: #6c757d; display: block; }
+        .info-card span { font-weight: bold; color: var(--moe-navy); font-size: 1rem; }
+
+        .signature-container { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+        #sig-canvas { border: 2px dashed #bbb; background: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; }
+        .sig-tools { display: flex; gap: 10px; }
+
+        .tab-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { padding: 8px 16px; border: 1px solid var(--moe-navy); background: white; color: var(--moe-navy); border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: var(--moe-navy); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .filter-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .filter-btns { display: flex; gap: 8px; }
+        .filter-btn { padding: 6px 12px; border: 1px solid #ccc; background: #f8f9fa; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; }
+        .filter-btn.active { background: var(--moe-navy); color: white; border-color: var(--moe-navy); }
+
+        .form-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        input[type="text"], input[type="file"], textarea { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: 'Tajawal'; flex: 1; }
+        textarea { width: 100%; height: 90px; resize: vertical; }
+        
+        .btn { padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 5px; text-decoration: none; }
+        .btn-green { background-color: var(--moe-green); color: white; }
+        .btn-navy { background-color: var(--moe-navy); color: white; }
+        .btn-danger { background-color: #d9534f; color: white; }
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        .btn-print { background-color: #17a2b8; color: white; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+        th { background-color: #f1f5f9; color: var(--moe-navy); }
+        .action-btns { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2 id="school-title">لوحة تحكم مدير المدرسة</h2>
+        <button onclick="logout()" class="btn btn-danger">تسجيل الخروج</button>
+    </header>
+
+    <!-- 1. بيانات المدرسة -->
+    <div class="container">
+        <h3>بيانات المدرسة المسجلة</h3>
+        <div class="info-grid">
+            <div class="info-card"><label>اسم المدرسة:</label><span id="info-name">جاري التحميل...</span></div>
+            <div class="info-card"><label>مدير المدرسة:</label><span id="info-principal">جاري التحميل...</span></div>
+            <div class="info-card"><label>المنطقة:</label><span id="info-region">جاري التحميل...</span></div>
+            <div class="info-card"><label>الإدارة التعليمية:</label><span id="info-dept">جاري التحميل...</span></div>
+            <div class="info-card"><label>المرحلة الدراسية:</label><span id="info-stage">جاري التحميل...</span></div>
+            <div class="info-card"><label>البريد الإلكتروني:</label><span id="info-email">جاري التحميل...</span></div>
+        </div>
+    </div>
+
+    <!-- 2. اعتماد التوقيع -->
+    <div class="container">
+        <h3>اعتماد توقيع مدير المدرسة</h3>
+        <div class="signature-container">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--moe-navy);">
+                <input type="checkbox" id="reflect-signature" style="width: 18px; height: 18px;">
+                إظهار وانعكاس هذا التوقيع على استمارة الطالب الرسمية
+            </label>
+            <canvas id="sig-canvas" width="380" height="130"></canvas>
+            <div class="sig-tools">
+                <button onclick="saveSignature()" class="btn btn-green">حفظ التوقيع</button>
+                <button onclick="clearSignature()" class="btn btn-danger">حذف / مسح التوقيع</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. إضافة الطلاب -->
+    <div class="container">
+        <h3>إضافة الطلاب</h3>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('single')">إضافة فردية</button>
+            <button class="tab-btn" onclick="switchTab('bulk')">لصق قائمة طلاب</button>
+            <button class="tab-btn" onclick="switchTab('file')">رفع ملف (CSV / Text)</button>
+        </div>
+
+        <div id="tab-single" class="tab-content active">
+            <div class="form-group">
+                <input type="text" id="std-name" placeholder="اسم الطالب الثلاثي">
+                <input type="text" id="std-id" placeholder="رقم الهوية / الإقامة (10 أرقام)" maxlength="10">
+                <input type="text" id="std-grade" placeholder="الصف الدراسي (مثال: الأول ثانوي)">
+                <input type="text" id="std-phone" placeholder="رقم جوال ولي الأمر (مثال: 05xxxxxxx)" maxlength="10">
+                <button onclick="addSingleStudent()" class="btn btn-green">إضافة الطالب</button>
+            </div>
+        </div>
+
+        <div id="tab-bulk" class="tab-content">
+            <p style="font-size:0.85rem; color:#666;">التنسيق: <b>اسم الطالب, رقم الهوية, الصف الدراسي, رقم الجوال</b> (كل طالب في سطر منفصل)</p>
+            <textarea id="bulk-input" placeholder="محمد أحمد العسيري, 1098765432, الأول ثانوي, 0500000000"></textarea>
+            <button onclick="addBulkStudents()" class="btn btn-green" style="margin-top:10px;">معالجة وإضافة القائمة</button>
+        </div>
+
+        <div id="tab-file" class="tab-content">
+            <div class="form-group">
+                <input type="file" id="file-input" accept=".csv, .txt">
+                <button onclick="uploadStudentFile()" class="btn btn-green">قراءة الملف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. قائمة الطلاب وحالة التوقيع -->
+    <div class="container">
+        <h3>قائمة الطلاب وحالة التوقيع</h3>
+
+        <div class="filter-toolbar">
+            <div class="filter-btns">
+                <button class="filter-btn active" onclick="filterStudents('all', this)">الكل (<span id="cnt-all">0</span>)</button>
+                <button class="filter-btn" onclick="filterStudents('signed', this)">الموقعين (<span id="cnt-signed">0</span>)</button>
+                <button class="filter-btn" onclick="filterStudents('unsigned', this)">بانتظار التوقيع (<span id="cnt-unsigned">0</span>)</button>
+            </div>
+            <button onclick="printAllSignedContracts()" class="btn btn-print">🖨️ طباعة جميع العقود الموقعة</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم الطالب</th>
+                    <th>رقم الهوية</th>
+                    <th>الصف الدراسي</th>
+                    <th>حالة التوقيع</th>
+                    <th>الإجراءات والأدوات</th>
+                </tr>
+            </thead>
+            <tbody id="students-table-body">
+                <tr><td colspan="5">جاري تحميل البيانات...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+   <script>
+        const SUPABASE_URL = 'https://fpfsdqgmtgeetwecxtpl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwZnNkcWdtdGdlZXR3ZWN4dHBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODk0NzYsImV4cCI6MjEwMjU2NTQ3Nn0.ofEm1s2OyFeey7D9ps_DtM4srB2Bt3qLEFkCp_q5VHo';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const currentSchoolEmail = localStorage.getItem('school_email') || localStorage.getItem('schoolEmail');
+        let currentSchoolId = localStorage.getItem('schoolId') || null;
+        let allStudentsList = [];
+        let currentFilter = 'all';
+
+        if (!currentSchoolEmail || currentSchoolEmail === 'null') {
+            window.location.href = 'school_login.html';
+        }
+
+        // --- التعديل الجوهري هنا: التحقق اللحظي من حالة الحساب عند فتح الداش بورد ---
+        async function verifySchoolSession() {
+            try {
+                const { data: school, error } = await _supabase
+                    .from('schools')
+                    .select('id, status, is_active')
+                    .eq('email', currentSchoolEmail)
+                    .single();
+
+                if (error || !school) {
+                    logout();
+                    return;
+                }
+
+                const isActive = school.is_active === true || school.status === 'active' || school.status === 'approved';
+                if (school.status === 'suspended' || !isActive) {
+                    alert('تم تعليق حسابك أو إلغاء تفعيله. سيتم إخراجك الآن.');
+                    logout();
+                }
+            } catch (err) {
+                console.error('خطأ في التحقق من الجلسة:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', verifySchoolSession);
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'school_login.html';
+        }
+
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', () => isDrawing = true);
+        canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', () => isDrawing = true);
+        canvas.addEventListener('touchend', () => { isDrawing = false; ctx.beginPath(); });
+        canvas.addEventListener('touchmove', draw);
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        async function loadSchoolData() {
+            try {
+                const { data, error } = await _supabase
+                    .from('schools')
+                    .select('*')
+                    .eq('email', currentSchoolEmail)
+                    .maybeSingle();
+
+                if (error) throw error;
+                if (!data) return logout();
+
+                currentSchoolId = data.id;
+                localStorage.setItem('schoolId', data.id);
+
+                document.getElementById('school-title').innerText = `لوحة تحكم - ${data.school_name || 'المدرسة'}`;
+                document.getElementById('info-name').innerText = data.school_name || '-';
+                document.getElementById('info-principal').innerText = data.principal_name || data.manager_name || '-';
+                document.getElementById('info-stage').innerText = data.stage || '-';
+                document.getElementById('info-region').innerText = data.region || 'عسير';
+                document.getElementById('info-dept').innerText = data.education_dept || '-';
+                document.getElementById('info-email').innerText = data.email || '-';
+
+                if (data.signature_url && data.reflect_signature) {
+                    document.getElementById('reflect-signature').checked = true;
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0);
+                    img.src = data.signature_url;
+                }
+
+                // الاشتراك في تحديثات قاعدة البيانات الحية (Realtime)
+                _supabase
+                    .channel('public_students')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, () => loadStudents())
+                    .subscribe();
+
+                loadStudents();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadStudents() {
+            try {
+                const { data: students, error: studErr } = await _supabase
+                    .from('students')
+                    .select('*')
+                    .eq('school_id', currentSchoolId)
+                    .order('created_at', { ascending: false });
+
+                if (studErr) throw studErr;
+
+                // فحص دقيق لجميع حقول التوقيع المتوقعة من صفحة الطالب
+                allStudentsList = (students || []).map(s => {
+                    const hasSigText = (str) => typeof str === 'string' && str.trim().length > 10;
+
+                    const isSigned = s.signed === true || 
+                                     s.is_signed === true || 
+                                     String(s.signed).toLowerCase() === 'true' ||
+                                     s.status === 'signed' || 
+                                     s.status === 'تم التوقيع' ||
+                                     hasSigText(s.student_signature) ||
+                                     hasSigText(s.signature_url) ||
+                                     hasSigText(s.parent_signature) ||
+                                     hasSigText(s.signature);
+
+                    return { ...s, isSigned };
+                });
+
+                const signedCount = allStudentsList.filter(s => s.isSigned).length;
+                const unsignedCount = allStudentsList.length - signedCount;
+
+                document.getElementById('cnt-all').innerText = allStudentsList.length;
+                document.getElementById('cnt-signed').innerText = signedCount;
+                document.getElementById('cnt-unsigned').innerText = unsignedCount;
+
+                renderStudentsTable();
+            } catch (err) {
+                document.getElementById('students-table-body').innerHTML = `<tr><td colspan="5" style="color:red;">خطأ في تحميل البيانات: ${err.message}</td></tr>`;
+            }
+        }
+
+        function filterStudents(type, btn) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderStudentsTable();
+        }
+
+        function renderStudentsTable() {
+            const tableBody = document.getElementById('students-table-body');
+            
+            let filtered = allStudentsList;
+            if (currentFilter === 'signed') filtered = allStudentsList.filter(s => s.isSigned);
+            if (currentFilter === 'unsigned') filtered = allStudentsList.filter(s => !s.isSigned);
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5">لا يوجد طلاب مطابقين للتصفية.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = filtered.map(s => {
+                const isSigned = s.isSigned;
+                const studentName = s.student_name || s.name || '-';
+                const nationalId = s.national_id || '-';
+                const grade = s.grade_and_stage || s.grade || '-';
+                const phone = s.parent_phone || '';
+
+                let phoneFormatted = phone.replace(/[^0-9]/g, '');
+                if (phoneFormatted.startsWith('05')) phoneFormatted = '966' + phoneFormatted.substring(1);
+                
+                const siteUrl = window.location.origin;
+                const signLink = `${siteUrl}/student_sign.html?id=${s.id}`;
+                const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الرابط التالي:\n${signLink}`);
+                const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
+
+                return `
+                    <tr>
+                        <td><b>${studentName}</b></td>
+                        <td>${nationalId}</td>
+                        <td>${grade}</td>
+                        <td>${isSigned ? '<span style="color:green;font-weight:bold;">✅ تم التوقيع</span>' : '<span style="color:red;font-weight:bold;">⏳ بانتظار التوقيع</span>'}</td>
+                        <td class="action-btns">
+                            ${isSigned ? `
+                                <a href="contract_view.html?id=${s.id}" target="_blank" class="btn btn-navy">👁️ معاينة العقد</a>
+                                <button onclick="printSingleContract('${s.id}')" class="btn btn-print">🖨️ طباعة</button>
+                            ` : `
+                                <a href="${waUrl}" target="_blank" class="btn btn-whatsapp">📱 تذكير واتساب</a>
+                            `}
+                            <button onclick="deleteStudent('${s.id}')" class="btn btn-danger">حذف</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function saveSignature() {
+            const reflect = document.getElementById('reflect-signature').checked;
+            const sigData = reflect ? canvas.toDataURL('image/png') : null;
+
+            try {
+                const { error } = await _supabase
+                    .from('schools')
+                    .update({ signature_url: sigData, reflect_signature: reflect })
+                    .eq('id', currentSchoolId);
+
+                if (error) throw error;
+                alert('تم حفظ التوقيع بنجاح!');
+            } catch (err) {
+                alert('خطأ أثناء حفظ التوقيع: ' + err.message);
+            }
+        }
+
+       async function addSingleStudent() {
+    const name = document.getElementById('std-name').value.trim();
+    const id = document.getElementById('std-id').value.trim();
+    const grade = document.getElementById('std-grade').value.trim();
+    const phone = document.getElementById('std-phone').value.trim() || '0500000000';
+
+    if (!name || !id || !grade) {
+        alert('يرجى ملء كافة الحقول المطلوبة.');
+        return;
+    }
+
+    try {
+        // 1. محاولة إضافة الطالب مع الحقول المتوافقة مع قاعدة البيانات
+        const payload = {
+            school_id: currentSchoolId,
+            student_name: name,
+            name: name,
+            national_id: id,
+            grade: grade,
+            grade_and_stage: grade,
+            parent_phone: phone
+        };
+
+        const { error } = await _supabase.from('students').insert([payload]);
+
+        // 2. معالجة خطأ تكرار الهوية
+        if (error) {
+            if (error.code === '23505' || error.message.includes('students_national_id_key')) {
+                
+                // البحث عن الطالب لمعرفة الـ school_id الخاص به
+                const { data: existingStudent } = await _supabase
+                    .from('students')
+                    .select('school_id')
+                    .eq('national_id', id)
+                    .maybeSingle();
+
+                if (existingStudent && existingStudent.school_id) {
+                    const { data: schoolData } = await _supabase
+                        .from('schools')
+                        .select('school_name')
+                        .eq('id', existingStudent.school_id)
+                        .maybeSingle();
+
+                    const schoolName = schoolData?.school_name || 'مدرسة أخرى';
+                    alert(`عذراً، رقم الهوية (${id}) مسجل بالفعل في: "${schoolName}".`);
+                } else {
+                    alert(`عذراً، رقم الهوية (${id}) مسجل بالفعل في مدرسة أخرى.`);
+                }
+                return;
+            }
+            throw error;
+        }
+
+        alert('تمت إضافة الطالب بنجاح!');
+        
+        // تفريغ الحقول وإعادة تحديث قائمة الطلاب
+        document.getElementById('std-name').value = '';
+        document.getElementById('std-id').value = '';
+        document.getElementById('std-grade').value = '';
+        document.getElementById('std-phone').value = '';
+        loadStudents();
+
+    } catch (err) {
+        console.error('خطأ الإضافة:', err);
+        alert('حدث خطأ أثناء إضافة الطالب: ' + err.message);
+    }
+}
+        async function addBulkStudents() {
+            const rawText = document.getElementById('bulk-input').value.trim();
+            if (!rawText) return alert('ضع البيانات أولاً');
+
+            const lines = rawText.split('\n');
+            const studentsToInsert = [];
+
+            for (let line of lines) {
+                const parts = line.split(',').map(p => p.trim());
+                if (parts.length >= 3) {
+                    const [name, id, grade, phone] = parts;
+                    studentsToInsert.push({
+                        school_id: currentSchoolId,
+                        student_name: name,
+                        name: name,
+                        national_id: id,
+                        grade: grade,
+                        grade_and_stage: grade,
+                        parent_phone: phone || '0500000000'
+                    });
+                }
+            }
+
+            if (studentsToInsert.length === 0) return alert('لا توجد أسطر صالحة للإضافة.');
+
+            try {
+                const { error } = await _supabase.from('students').insert(studentsToInsert);
+                if (error) throw error;
+
+                alert(`تم إضافة ${studentsToInsert.length} طالب بنجاح.`);
+                document.getElementById('bulk-input').value = '';
+                loadStudents();
+            } catch (err) {
+                alert('خطأ في الإضافة الجماعية: ' + err.message);
+            }
+        }
+
+        function printSingleContract(studentId) {
+            window.open(`contract_view.html?id=${studentId}&print=true`, '_blank');
+        }
+
+        function printAllSignedContracts() {
+            window.open(`print_all.html?school_id=${currentSchoolId}`, '_blank');
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm('هل أنت تأكد من حذف هذا الطالب؟')) return;
+            await _supabase.from('students').delete().eq('id', id);
+            loadStudents();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tabName === 'single') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-single').classList.add('active');
+            } else if (tabName === 'bulk') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tab-bulk').classList.add('active');
+            } else if (tabName === 'file') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tab-file').classList.add('active');
+            }
+        }
+
+        function uploadStudentFile() {
+            const file = document.getElementById('file-input').files[0];
+            if (!file) return alert('اختر ملفاً أولاً');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('bulk-input').value = e.target.result;
+                switchTab('bulk');
+                alert('تم تجهيز البيانات، اضغط (معالجة وإضافة القائمة).');
+            };
+            reader.readAsText(file);
+        }
+
+        loadSchoolData();
+   
+        async function addStudent(event) {
+    if (event) event.preventDefault();
+
+    const studentName = document.getElementById('student_name')?.value.trim();
+    const nationalId = document.getElementById('national_id')?.value.trim();
+    const gradeStage = document.getElementById('grade_stage')?.value.trim();
+    const className = document.getElementById('class_name')?.value.trim();
+
+    if (!studentName || !nationalId) {
+        alert('يرجى ملء كافة الحقول المطلوبة (اسم الطالب ورقم الهوية).');
+        return;
+    }
+
+    try {
+        // 1. محاولة إضافة الطالب
+        const { data, error } = await _supabase
+            .from('students')
+            .insert([
+                {
+                    student_name: studentName,
+                    national_id: nationalId,
+                    grade_stage: gradeStage,
+                    class_name: className,
+                    school_id: currentSchoolId
+                }
+            ]);
+
+        // 2. معالجة خطأ تكرار الهوية
+        if (error) {
+            if (error.code === '23505' || error.message.includes('students_national_id_key')) {
+                
+                // البحث عن الطالب لمعرفة الـ school_id الخاص به
+                const { data: existingStudent } = await _supabase
+                    .from('students')
+                    .select('school_id')
+                    .eq('national_id', nationalId)
+                    .maybeSingle();
+
+                if (existingStudent && existingStudent.school_id) {
+                    // جلب اسم المدرسة مباشرة من جدول المدارس
+                    const { data: schoolData } = await _supabase
+                        .from('schools')
+                        .select('school_name')
+                        .eq('id', existingStudent.school_id)
+                        .maybeSingle();
+
+                    const schoolName = schoolData?.school_name || 'مدرسة أخرى';
+                    alert(`عذراً، رقم الهوية (${nationalId}) مسجل بالفعل في: "${schoolName}".`);
+                } else {
+                    alert(`عذراً، رقم الهوية (${nationalId}) مسجل بالفعل في مدرسة أخرى.`);
+                }
+                return;
+            }
+            throw error;
+        }
+
+        alert('تمت إضافة الطالب بنجاح!');
+        
+        // تفريغ الحقول وإعادة تحديث قائمة الطلاب
+        if (document.getElementById('student_name')) document.getElementById('student_name').value = '';
+        if (document.getElementById('national_id')) document.getElementById('national_id').value = '';
+        if (typeof fetchStudents === 'function') fetchStudents();
+
+    } catch (err) {
+        console.error('خطأ الإضافة:', err);
+        alert('حدث خطأ أثناء إضافة الطالب: ' + err.message);
+    }
+}
+   </script>
+</body>
+</html>

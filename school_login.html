@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول مدير المدرسة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --moe-navy: #002B49; --moe-green: #006747; }
+        body { font-family: 'Tajawal', sans-serif; background: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: var(--moe-navy); margin-bottom: 25px; }
+        .form-group { margin-bottom: 18px; text-align: right; }
+        label { display: block; margin-bottom: 6px; color: #333; font-weight: bold; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: 'Tajawal'; }
+        .btn-submit { width: 100%; background: var(--moe-green); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; font-family: 'Tajawal'; }
+        .btn-submit:disabled { background: #888; cursor: not-allowed; }
+        .back-link { display: inline-block; margin-top: 15px; color: var(--moe-navy); text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>تسجيل دخول مدير المدرسة</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>البريد الإلكتروني المعتمد:</label>
+                <input type="email" id="email" required placeholder="example@school.moe.gov.sa">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" id="submitBtn" class="btn-submit">تسجيل الدخول</button>
+        </form>
+        <a href="index.html" class="back-link">← العودة للرئيسية</a>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://fpfsdqgmtgeetwecxtpl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwZnNkcWdtdGdlZXR3ZWN4dHBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODk0NzYsImV4cCI6MjEwMjU2NTQ3Nn0.ofEm1s2OyFeey7D9ps_DtM4srB2Bt3qLEFkCp_q5VHo';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value.trim();
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'جاري التحقق...';
+
+            try {
+                const { data: schools, error } = await _supabase
+                    .from('schools')
+                    .select('id, email, password, is_active, status')
+                    .eq('email', email);
+
+                if (error) throw error;
+
+                if (!schools || schools.length === 0) {
+                    alert('البريد الإلكتروني غير مسجل بالنظام.');
+                    return;
+                }
+
+                const school = schools[0];
+
+                if (school.password !== password) {
+                    alert('كلمة المرور غير صحيحة.');
+                    return;
+                }
+
+                // --- التعديل الجوهري هنا: فحص حالات الحساب بدقة ---
+                if (school.status === 'suspended') {
+                    alert('تم تعليق هذا الحساب من قبل إدارة النظام. يرجى التواصل مع الدعم الفني.');
+                    return;
+                }
+
+                const isApproved = school.is_active === true || school.status === 'active' || school.status === 'approved';
+                if (!isApproved) {
+                    alert('الحساب بانتظار الاعتماد من قبل مدير النظام (Admin).');
+                    return;
+                }
+
+                localStorage.setItem('school_email', school.email);
+                localStorage.setItem('schoolId', school.id);
+                
+                setTimeout(() => {
+                    window.location.href = 'school_dashboard.html';
+                }, 100);
+
+            } catch (err) {
+                alert('حدث خطأ أثناء تسجيل الدخول: ' + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'تسجيل الدخول';
+            }
+        });
+    </script>
+</body>
+</html>
