@@ -353,23 +353,24 @@
                     receiptUrl = publicUrlData.publicUrl;
                 }
 
-                // 5. حفظ بيانات المدرسة في جدول المدارس `schools`
-                const { error: insertError } = await supabase
-                    .from('schools')
-                    .insert([
-                        {
-                            id: authData.user ? authData.user.id : undefined,
-                            education_dept: edudept,
-                            school_name: schoolName,
-                            stages: selectedStages,
-                            phone: phone,
-                            email: email,
-                            receipt_url: receiptUrl,
-                            is_active: false, // معلق حتى اعتماد المشرف/الآدمن
-                            status: 'pending',
-                            created_at: new Date().toISOString()
-                        }
-                    ]);
+               // 5. حفظ بيانات المدرسة في جدول المدارس schools
+const { error: insertError } = await supabase
+    .from('schools')
+    .insert([
+        {
+            id: authData.user ? authData.user.id : undefined,
+            education_dept: edudept,
+            school_name: schoolName,
+            stages: selectedStages,
+            phone: phone,
+            email: email,
+            password: password, // <-- أضف هذا السطر هنا
+            receipt_url: receiptUrl,
+            is_active: false,
+            status: 'pending',
+            created_at: new Date().toISOString()
+        }
+    ]);
 
                 if (insertError) throw insertError;
 
