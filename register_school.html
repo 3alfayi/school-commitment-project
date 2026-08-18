@@ -221,6 +221,12 @@
                 <input type="text" id="school-name" placeholder="مثال: مدرسة ابن خلدون" required>
             </div>
 
+            <!-- الحقل المضاف حديثاً لاسم مدير المدرسة -->
+            <div class="form-group">
+                <label for="principal-name">اسم مدير المدرسة:</label>
+                <input type="text" id="principal-name" placeholder="أدخل اسم مدير المدرسة الثلاثي" required>
+            </div>
+
             <div class="form-group">
                 <label>المرحلة الدراسية (يمكن تحديد أكثر من مرحلة):</label>
                 <div class="checkbox-group">
@@ -281,6 +287,7 @@
 
             const edudept = document.getElementById('education-dept').value.trim();
             const schoolName = document.getElementById('school-name').value.trim();
+            const principalName = document.getElementById('principal-name').value.trim(); // قراءة اسم المدير
             const phone = document.getElementById('phone').value.trim();
             const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value;
@@ -322,14 +329,15 @@
                     return;
                 }
 
-                // 3. إنشـاء حساب المستخدم في نظام Supabase Auth
+                // 3. إنشاء حساب المستخدم في نظام Supabase Auth
                 const { data: authData, error: authError } = await supabase.auth.signUp({
                     email: email,
                     password: password,
                     options: {
                         data: {
                             role: 'school',
-                            school_name: schoolName
+                            school_name: schoolName,
+                            principal_name: principalName
                         }
                     }
                 });
@@ -353,24 +361,25 @@
                     receiptUrl = publicUrlData.publicUrl;
                 }
 
-               // 5. حفظ بيانات المدرسة في جدول المدارس schools
-const { error: insertError } = await supabase
-    .from('schools')
-    .insert([
-        {
-            id: authData.user ? authData.user.id : undefined,
-            education_dept: edudept,
-            school_name: schoolName,
-            stages: selectedStages,
-            phone: phone,
-            email: email,
-            password: password, // <-- أضف هذا السطر هنا
-            receipt_url: receiptUrl,
-            is_active: false,
-            status: 'pending',
-            created_at: new Date().toISOString()
-        }
-    ]);
+               // 5. حفظ بيانات المدرسة في جدول المدارس schools مع إضافة اسم المدير
+                const { error: insertError } = await supabase
+                    .from('schools')
+                    .insert([
+                        {
+                            id: authData.user ? authData.user.id : undefined,
+                            education_dept: edudept,
+                            school_name: schoolName,
+                            principal_name: principalName, // <--- حفظ اسم المدير هنا لينعكس في صفحة التحكم
+                            stages: selectedStages,
+                            phone: phone,
+                            email: email,
+                            password: password,
+                            receipt_url: receiptUrl,
+                            is_active: false,
+                            status: 'pending',
+                            created_at: new Date().toISOString()
+                        }
+                    ]);
 
                 if (insertError) throw insertError;
 
