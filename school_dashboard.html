@@ -490,6 +490,7 @@
 }
 
 
+
         async function deleteStudent(id) {
             if (!confirm('هل أنت تأكد من حذف هذا الطالب؟')) return;
             await _supabase.from('students').delete().eq('id', id);
