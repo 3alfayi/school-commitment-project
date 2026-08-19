@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>طباعة جميع العقود الموقعة</title>
-    <!-- استدعاء نفس ملف التنسيق الخاص بالاستمارة لضمان تطابق التصميم -->
-    <link rel="stylesheet" href="css/style.css"> 
+    <!-- تم تصحيح المسار ليعود للمجلد الرئيسي أولاً لضمان تحميل التنسيق -->
+    <link rel="stylesheet" href="./css/style.css"> 
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -18,7 +18,6 @@
             padding: 50px;
             font-size: 24px;
         }
-        /* تنسيق الفصل بين الصفحات أثناء الطباعة */
         .contract-page {
             background: white;
             max-width: 800px;
@@ -30,14 +29,14 @@
             body {
                 background: none;
             }
-            .loading-screen, .no-print-btn {
+            .loading-screen {
                 display: none !important;
             }
             .contract-page {
                 border: none;
                 margin: 0;
                 padding: 0;
-                page-break-after: always; /* ينقل كل عقد في صفحة مستقلة عند الطباعة */
+                page-break-after: always;
                 page-break-inside: avoid;
             }
         }
@@ -48,12 +47,11 @@
     <div id="loading" class="loading-screen">جاري جلب العقود الموقعة وتجهيزها للطباعة...</div>
     <div id="all-contracts-container"></div>
 
-        <!-- استدعاء مكتبة Supabase الرسمية وتأكد من مطابقة مسار ملف العميل لمشروعك -->
+    <!-- استدعاء مكتبة Supabase الرسمية المستقرة والتأكد من مسار العميل المصلح -->
     <script src="https://jsdelivr.net"></script>
-    <script src="js/supabaseClient.js"></script>
+    <script src="./js/supabaseClient.js"></script>
 
     <script>
-        // دالة تحويل التاريخ إلى هجري المعتمدة
         function convertToHijri(dateString) {
             try {
                 if (!dateString) return "1448 هـ";
@@ -77,73 +75,78 @@
         }
 
         async function loadAndPrintAll() {
-    const container = document.getElementById('all-contracts-container');
-    const loadingDiv = document.getElementById('loading');
+            const container = document.getElementById('all-contracts-container');
+            const loadingDiv = document.getElementById('loading');
 
-    try {
-        // 1. جلب الـ school_id الممرر من رابط لوحة التحكم
-        const urlParams = new URLSearchParams(window.location.search);
-        const schoolId = urlParams.get('school_id');
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const schoolId = urlParams.get('school_id');
 
-        if (!schoolId) {
-            loadingDiv.innerText = "خطأ: لم يتم العثور على معرّف المدرسة في الرابط.";
-            return;
-        }
+                if (!schoolId) {
+                    loadingDiv.innerText = "خطأ: لم يتم العثور على معرّف المدرسة في الرابط.";
+                    return;
+                }
 
-        // 2. جلب الطلاب الموقعين والتابعين لهذه المدرسة فقط من Supabase
-        const { data: students, error } = await _supabase
-            .from('students')
-            .eq('status', 'تم التوقيع')
-            .eq('school_id', schoolId); 
+                // تحديد المتغير الصحيح المعرف في ملف supabaseClient.js لديك بدون شرطة سفلية
+                const client = typeof supabase !== 'undefined' ? supabase : _supabase;
 
-        if (error) throw error;
+                if (!client) {
+                    loadingDiv.innerText = "خطأ: لم يتم الاتصال بقاعدة البيانات بشكل صحيح.";
+                    return;
+                }
 
-        if (!students || students.length === 0) {
-            loadingDiv.innerText = "لا يوجد أي عقود موقعة لطباعتها حالياً لهذه المدرسة.";
-            return;
-        }
+                // جلب الطلاب الموقّعين للمدرسة الحالية
+                const { data: students, error } = await client
+                    .from('students')
+                    .eq('status', 'تم التوقيع')
+                    .eq('school_id', schoolId); 
 
-        // 3. بناء الاستمارات تكرارياً لكل طالب
-        students.forEach(student => {
-            const hijriDate = convertToHijri(student.signed_at || student.created_at);
-            
-            container.innerHTML += `
-                <div class="contract-page">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h3>المملكة العربية السعودية - وزارة التعليم</h3>
-                        <h4>استمارة الالتزام المدرسي والزي الرسمي لعام 1448هـ</h4>
-                    </div>
+                if (error) throw error;
+
+                if (!students || students.length === 0) {
+                    loadingDiv.innerText = "لا يوجد أي عقود موقعة لطباعتها حالياً لهذه المدرسة.";
+                    return;
+                }
+
+                students.forEach(student => {
+                    const hijriDate = convertToHijri(student.signed_at || student.created_at);
                     
-                    <div class="info-section">
-                        <p><strong>اسم الطالب/ة:</strong> ${student.student_name || student.name}</p>
-                        <p><strong>الصف الدراسي:</strong> ${student.grade_stage || student.stage || '-'}</p>
-                        <p><strong>رقم الهوية:</strong> ${student.national_id || '-'}</p>
-                    </div>
+                    container.innerHTML += `
+                        <div class="contract-page">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <h3>المملكة العربية السعودية - وزارة التعليم</h3>
+                                <h4>استمارة الالتزام المدرسي والزي الرسمي لعام 1448هـ</h4>
+                            </div>
+                            
+                            <div class="info-section">
+                                <p><strong>اسم الطالب/ة:</strong> ${student.student_name || student.name || '-'}</p>
+                                <p><strong>الصف الدراسي:</strong> ${student.grade_stage || student.stage || '-'}</p>
+                                <p><strong>رقم الهوية:</strong> ${student.national_id || '-'}</p>
+                            </div>
 
-                    <div class="signature-section" style="margin-top: 30px;">
-                        <p><strong>توقيع الطالب/ة:</strong></p>
-                        ${student.student_signature ? `<img src="${student.student_signature}" style="max-width:150px; max-height:60px;">` : '<span>-</span>'}
-                        <p style="font-size: 12px; color: #555;">التاريخ: ${hijriDate}</p>
-                    </div>
+                            <div class="signature-section" style="margin-top: 30px;">
+                                <p><strong>توقيع الطالب/ة:</strong></p>
+                                ${student.student_signature ? `<img src="${student.student_signature}" style="max-width:150px; max-height:60px;">` : '<span>-</span>'}
+                                <p style="font-size: 12px; color: #555;">التاريخ: ${hijriDate}</p>
+                            </div>
 
-                    <hr style="border: 0; border-top: 1px dashed #ccc; margin: 40px 0;">
-                </div>
-            `;
-        });
+                            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 40px 0;">
+                        </div>
+                    `;
+                });
 
-        // إخفاء رسالة التحميل
-        loadingDiv.style.display = 'none';
+                loadingDiv.style.display = 'none';
 
-        // 4. استدعاء أمر الطباعة التلقائي
-        setTimeout(() => {
-            window.print();
-        }, 1000);
+                // أمر الطباعة التلقائي
+                setTimeout(() => {
+                    window.print();
+                }, 1000);
 
-    } catch (err) {
-        console.error(err);
-        loadingDiv.innerText = "حدث خطأ أثناء تحميل البيانات، يرجى المحاولة لاحقاً.";
-    }
-}
+            } catch (err) {
+                console.error(err);
+                loadingDiv.innerText = "حدث خطأ أثناء تحميل البيانات، يرجى المحاولة لاحقاً.";
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', loadAndPrintAll);
     </script>
