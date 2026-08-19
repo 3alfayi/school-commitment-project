@@ -482,8 +482,13 @@
         }
 
         function printAllSignedContracts() {
-            window.open(`print_all.html?school_id=${currentSchoolId}`, '_blank');
-        }
+    if (!currentSchoolId) {
+        alert("لم يتم العثور على معرّف المدرسة الحالي!");
+        return;
+    }
+    window.open(`print_all_contracts.html?school_id=${currentSchoolId}`, '_blank');
+}
+
 
         async function deleteStudent(id) {
             if (!confirm('هل أنت تأكد من حذف هذا الطالب؟')) return;

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طباعة جميع العقود الموقعة</title>
+    <!-- استدعاء نفس ملف التنسيق الخاص بالاستمارة لضمان تطابق التصميم -->
+    <link rel="stylesheet" href="css/style.css"> 
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .loading-screen {
+            text-align: center;
+            padding: 50px;
+            font-size: 24px;
+        }
+        /* تنسيق الفصل بين الصفحات أثناء الطباعة */
+        .contract-page {
+            background: white;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            border: 1px solid #eee;
+        }
+        @media print {
+            body {
+                background: none;
+            }
+            .loading-screen, .no-print-btn {
+                display: none !important;
+            }
+            .contract-page {
+                border: none;
+                margin: 0;
+                padding: 0;
+                page-break-after: always; /* ينقل كل عقد في صفحة مستقلة عند الطباعة */
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading" class="loading-screen">جاري جلب العقود الموقعة وتجهيزها للطباعة...</div>
+    <div id="all-contracts-container"></div>
+
+        <!-- استدعاء مكتبة Supabase الرسمية وتأكد من مطابقة مسار ملف العميل لمشروعك -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="js/supabaseClient.js"></script>
+
+    <script>
+        // دالة تحويل التاريخ إلى هجري المعتمدة
+        function convertToHijri(dateString) {
+            try {
+                if (!dateString) return "1448 هـ";
+                const dateObj = new Date(dateString);
+                const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                });
+                const parts = formatter.formatToParts(dateObj);
+                let day = '', month = '', year = '';
+                for (const part of parts) {
+                    if (part.type === 'day') day = part.value;
+                    if (part.type === 'month') month = part.value;
+                    if (part.type === 'year') year = part.value;
+                }
+                return `${year}/${month}/${day} هـ`;
+            } catch (e) {
+                return "1448 هـ";
+            }
+        }
+
+        async function loadAndPrintAll() {
+    const container = document.getElementById('all-contracts-container');
+    const loadingDiv = document.getElementById('loading');
+
+    try {
+        // 1. جلب الـ school_id الممرر من رابط لوحة التحكم
+        const urlParams = new URLSearchParams(window.location.search);
+        const schoolId = urlParams.get('school_id');
+
+        if (!schoolId) {
+            loadingDiv.innerText = "خطأ: لم يتم العثور على معرّف المدرسة في الرابط.";
+            return;
+        }
+
+        // 2. جلب الطلاب الموقعين والتابعين لهذه المدرسة فقط من Supabase
+        const { data: students, error } = await _supabase
+            .from('students')
+            .eq('status', 'تم التوقيع')
+            .eq('school_id', schoolId); 
+
+        if (error) throw error;
+
+        if (!students || students.length === 0) {
+            loadingDiv.innerText = "لا يوجد أي عقود موقعة لطباعتها حالياً لهذه المدرسة.";
+            return;
+        }
+
+        // 3. بناء الاستمارات تكرارياً لكل طالب
+        students.forEach(student => {
+            const hijriDate = convertToHijri(student.signed_at || student.created_at);
+            
+            container.innerHTML += `
+                <div class="contract-page">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3>المملكة العربية السعودية - وزارة التعليم</h3>
+                        <h4>استمارة الالتزام المدرسي والزي الرسمي لعام 1448هـ</h4>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p><strong>اسم الطالب/ة:</strong> ${student.student_name || student.name}</p>
+                        <p><strong>الصف الدراسي:</strong> ${student.grade_stage || student.stage || '-'}</p>
+                        <p><strong>رقم الهوية:</strong> ${student.national_id || '-'}</p>
+                    </div>
+
+                    <div class="signature-section" style="margin-top: 30px;">
+                        <p><strong>توقيع الطالب/ة:</strong></p>
+                        ${student.student_signature ? `<img src="${student.student_signature}" style="max-width:150px; max-height:60px;">` : '<span>-</span>'}
+                        <p style="font-size: 12px; color: #555;">التاريخ: ${hijriDate}</p>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px dashed #ccc; margin: 40px 0;">
+                </div>
+            `;
+        });
+
+        // إخفاء رسالة التحميل
+        loadingDiv.style.display = 'none';
+
+        // 4. استدعاء أمر الطباعة التلقائي
+        setTimeout(() => {
+            window.print();
+        }, 1000);
+
+    } catch (err) {
+        console.error(err);
+        loadingDiv.innerText = "حدث خطأ أثناء تحميل البيانات، يرجى المحاولة لاحقاً.";
+    }
+}
+
+        document.addEventListener('DOMContentLoaded', loadAndPrintAll);
+    </script>
+</body>
+</html>
