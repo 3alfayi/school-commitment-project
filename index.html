@@ -123,7 +123,19 @@
             background-color: var(--moe-navy);
             color: #ffffff;
             font-size: 0.9rem;
-        }     
+        }  
+       @media (max-width: 768px) {
+  .cards-container {
+    flex-direction: column !important; 
+    align-items: center !important;    
+    gap: 20px !important;              
+  }
+  .card {
+    width: 90% !important;            
+    max-width: 100% !important;       
+  }
+}
+ 
     </style>
 </head>
 <body>
