@@ -329,9 +329,9 @@
                 let phoneFormatted = phone.replace(/[^0-9]/g, '');
                 if (phoneFormatted.startsWith('05')) phoneFormatted = '966' + phoneFormatted.substring(1);
                 
-              const signLink = "https://3alfayi.github.io/school-commitment-project/student.html";
+               const signLink = "https://3alfayi.github.io/school-commitment-project/student.html";
 const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الرابط التالي:\n${signLink}`);
-const waUrl = `https://wa.me{phoneFormatted}?text=${waMessage}`;
+const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
                 
                 return `
                     <tr>
