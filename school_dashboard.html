@@ -63,10 +63,8 @@
         <div class="info-grid">
             <div class="info-card"><label>اسم المدرسة:</label><span id="info-name">جاري التحميل...</span></div>
             <div class="info-card"><label>مدير المدرسة:</label><span id="info-principal">جاري التحميل...</span></div>
-           <div class="info-card">
-    <label>الإدارة / المنطقة:</label>
-    <span id="info-location">جاري التحميل...</span>
-</div>
+            <div class="info-card"><label>المنطقة:</label><span id="info-region">جاري التحميل...</span></div>
+            <div class="info-card"><label>الإدارة التعليمية:</label><span id="info-dept">جاري التحميل...</span></div>
             <div class="info-card"><label>المرحلة الدراسية:</label><span id="info-stage">جاري التحميل...</span></div>
             <div class="info-card"><label>البريد الإلكتروني:</label><span id="info-email">جاري التحميل...</span></div>
         </div>
@@ -592,27 +590,6 @@
         alert('حدث خطأ أثناء إضافة الطالب: ' + err.message);
     }
 }
-// افترضنا أن متغير البيانات القادم من Supabase اسمه data
-// نقوم بجلب القيمة وتأكيد أنها ليست فارغة أو نصاً يحتوي على شرطة "-"
-const region = data.region && data.region !== "-" ? data.region : null;
-const dept = data.educational_administration && data.educational_administration !== "-" ? data.educational_administration : null;
-
-let locationText = "-";
-
-if (region && dept) {
-    // إذا كان كلاهما موجوداً، يعرض أحدهما (مثلاً الإدارة التعليمية)
-    locationText = dept; 
-} else if (dept) {
-    // إذا كانت الإدارة فقط موجودة
-    locationText = dept;
-} else if (region) {
-    // إذا كانت المنطقة فقط موجودة
-    locationText = region;
-}
-
-// عرض النتيجة النهائية في السطر المشترك
-document.getElementById("info-location").innerText = locationText;
-
    </script>
 </body>
 </html>
