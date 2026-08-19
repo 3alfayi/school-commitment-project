@@ -270,15 +270,31 @@
         }
 
         async function deleteSchool(id) {
-            if (confirm('هل أنت تأكد من حذف هذه المدرسة؟')) {
-                try {
-                    const { error } = await supabaseClient.from('schools').delete().eq('id', id);
-                    if (!error) fetchSchools();
-                } catch (err) {
-                    alert('حدث خطأ أثناء الحذف');
-                }
+    if (!id || id === 'undefined') {
+        alert('خطأ: لم يتم العثور على معرف (ID) صحيح لهذه المدرسة!');
+        return;
+    }
+    try {
+        const { error } = await supabaseClient
+            .from('schools')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert('فشل الحذف من قاعدة البيانات: ' + error.message);
+        } else {
+            alert('تم حذف المدرسة بنجاح');
+            if (typeof fetchSchools === 'function') {
+                fetchSchools();
+            } else {
+                location.reload();
             }
         }
+    } catch (err) {
+        alert('حدث خطأ غير متوقع أثناء الحذف');
+    }
+}
+
 
         function logout() {
             localStorage.removeItem('adminLoggedIn');
