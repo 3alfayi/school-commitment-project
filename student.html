@@ -415,7 +415,7 @@
         <div class="section-box">
             <div class="section-title">خاص بالطالب / الطالبة:</div>
             <div class="section-text">
-                اسم الطالب/ـة: <b id="lbl-student-name">...</b> | الصف: <b id="lbl-student-stage">...</b> | المدرسة: <b id="lbl-school-name">...</b><br>
+                اسم الطالب/ـة: <b id="lbl-student-name">...</b> | الصف: <b id="lbl-student-stage">...</b><br>
                 نعم أنا الطالب/ـة الموضح اسمه/ـا وبياناته/ـا أعلاه، قد اطلعت على محتوى قواعد السلوك والمواظبة وبناء عليه أتعهد أن ألتزم بالأنظمة والتعليمات الخاصة بقواعد السلوك والمواظبة. وأتعهد بالالتزام بالزي الرسمي للمدرسة.
             </div>
             
@@ -782,8 +782,7 @@
             document.querySelectorAll('.current-date').forEach(el => el.innerText = hijriToday);
 
             document.getElementById('lbl-student-name').innerText = std.student_name || std.name || '-';
-            document.getElementById('lbl-student-stage').innerText = std.stage || '-';
-            document.getElementById('lbl-student-grade').innerText = std.grade || '-';
+            document.getElementById('lbl-student-stage').innerText = std.stage ||
             document.getElementById('parent-phone-input').value = std.parent_phone || '';
             
             if (std.parent_name) document.getElementById('parent-name-input').value = std.parent_name;
