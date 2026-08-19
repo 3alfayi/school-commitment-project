@@ -63,7 +63,10 @@
         <div class="info-grid">
             <div class="info-card"><label>اسم المدرسة:</label><span id="info-name">جاري التحميل...</span></div>
             <div class="info-card"><label>مدير المدرسة:</label><span id="info-principal">جاري التحميل...</span></div>
-            <div class="info-card"><label>الإدارة التعليمية:</label><span id="info-dept">جاري التحميل...</span></div>
+           <div class="info-card">
+    <label>الإدارة / المنطقة:</label>
+    <span id="info-location">جاري التحميل...</span>
+</div>
             <div class="info-card"><label>المرحلة الدراسية:</label><span id="info-stage">جاري التحميل...</span></div>
             <div class="info-card"><label>البريد الإلكتروني:</label><span id="info-email">جاري التحميل...</span></div>
         </div>
@@ -237,8 +240,9 @@
                 document.getElementById('school-title').innerText = `لوحة تحكم - ${data.school_name || 'المدرسة'}`;
                 document.getElementById('info-name').innerText = data.school_name || '-';
                 document.getElementById('info-principal').innerText = data.principal_name || data.manager_name || '-';
-               document.getElementById('info-stage').innerText = Array.isArray(data.stages) ? data.stages.join('، ') : (data.stages || '-');
-                document.getElementById('info-dept').innerText = data.education_dept || '-';
+                document.getElementById('info-stage').innerText = data.stage || '-';
+                document.getElementById('info-region').innerText = data.region || 'عسير';
+                document.getElementById('info-dept').innerText = data.edu_department || '-';
                 document.getElementById('info-email').innerText = data.email || '-';
 
                 if (data.signature_url && data.reflect_signature) {
@@ -329,11 +333,11 @@
                 let phoneFormatted = phone.replace(/[^0-9]/g, '');
                 if (phoneFormatted.startsWith('05')) phoneFormatted = '966' + phoneFormatted.substring(1);
                 
-              const siteUrl = window.location.origin;
+                const siteUrl = window.location.origin;
                 const signLink = `${siteUrl}/https://3alfayi.github.io/school-commitment-project/student.html?id=${s.id}`;
                 const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الرابط التالي:\n${signLink}`);
                 const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
-                
+
                 return `
                     <tr>
                         <td><b>${studentName}</b></td>
@@ -588,6 +592,27 @@
         alert('حدث خطأ أثناء إضافة الطالب: ' + err.message);
     }
 }
+// افترضنا أن متغير البيانات القادم من Supabase اسمه data
+// نقوم بجلب القيمة وتأكيد أنها ليست فارغة أو نصاً يحتوي على شرطة "-"
+const region = data.region && data.region !== "-" ? data.region : null;
+const dept = data.educational_administration && data.educational_administration !== "-" ? data.educational_administration : null;
+
+let locationText = "-";
+
+if (region && dept) {
+    // إذا كان كلاهما موجوداً، يعرض أحدهما (مثلاً الإدارة التعليمية)
+    locationText = dept; 
+} else if (dept) {
+    // إذا كانت الإدارة فقط موجودة
+    locationText = dept;
+} else if (region) {
+    // إذا كانت المنطقة فقط موجودة
+    locationText = region;
+}
+
+// عرض النتيجة النهائية في السطر المشترك
+document.getElementById("info-location").innerText = locationText;
+
    </script>
 </body>
 </html>
