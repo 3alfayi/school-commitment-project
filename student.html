@@ -782,7 +782,7 @@
             document.querySelectorAll('.current-date').forEach(el => el.innerText = hijriToday);
 
             document.getElementById('lbl-student-name').innerText = std.student_name || std.name || '-';
-            document.getElementById('lbl-student-stage').innerText = std.stage ||
+            document.getElementById('lbl-student-stage').innerText = std.stage || std.grade_and_stage || '-';
             document.getElementById('parent-phone-input').value = std.parent_phone || '';
             
             if (std.parent_name) document.getElementById('parent-name-input').value = std.parent_name;
