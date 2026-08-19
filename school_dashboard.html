@@ -238,7 +238,7 @@
                 document.getElementById('info-name').innerText = data.school_name || '-';
                 document.getElementById('info-principal').innerText = data.principal_name || data.manager_name || '-';
                document.getElementById('info-stage').innerText = Array.isArray(data.stages) ? data.stages.join('، ') : (data.stages || '-');
-                document.getElementById('info-dept').innerText = data.edu_department || '-';
+                document.getElementById('info-dept').innerText = data.education_dept || '-';
                 document.getElementById('info-email').innerText = data.email || '-';
 
                 if (data.signature_url && data.reflect_signature) {
@@ -329,11 +329,12 @@
                 let phoneFormatted = phone.replace(/[^0-9]/g, '');
                 if (phoneFormatted.startsWith('05')) phoneFormatted = '966' + phoneFormatted.substring(1);
                 
-                const siteUrl = window.location.origin;
-                const signLink = `${siteUrl}/student.html?id=${s.id}`;
-                const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الرابط التالي:\n${signLink}`);
-                const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
-
+                const pathSegments = window.location.pathname.split('/');
+        pathSegments.pop();
+        const siteUrl = window.location.origin + pathSegments.join('/');
+        const signLink = `${siteUrl}/student.html`;
+        const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الدخول بالهوية من خلال الرابط التالي:\n${signLink}`);
+        const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
                 return `
                     <tr>
                         <td><b>${studentName}</b></td>
