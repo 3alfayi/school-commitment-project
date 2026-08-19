@@ -41,7 +41,80 @@
             <h1 class="text-lg md:text-xl font-extrabold text-blue-900 mt-2">استمارة الالتزام المدرسي والزي الرسمي 1448هـ</h1>
         </div>
 
-         student.html
+        <!-- باركودات QR مرتبة أفقياً -->
+        <div class="flex justify-around items-center text-center my-4 border-b border-dashed border-gray-300 pb-4">
+            <div class="flex flex-col items-center">
+                <img id="qr-img-1" src="qr1.jpg" alt="قواعد السلوك والمواظبة" class="w-16 h-16 md:w-20 md:h-20 object-contain">
+                <span class="text-[10px] md:text-xs text-gray-600 mt-1">قواعد السلوك والمواظبة الإصدار الخامس</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <img id="qr-img-2" src="qr2.jpg" alt="لائحة حماية الطفل" class="w-16 h-16 md:w-20 md:h-20 object-contain">
+                <span class="text-[10px] md:text-xs text-gray-600 mt-1">لائحة حماية الطفل</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <img id="qr-img-3" src="qr3.jpg" alt="دليل الزي الرسمي" class="w-16 h-16 md:w-20 md:h-20 object-contain">
+                <span class="text-[10px] md:text-xs text-gray-600 mt-1">دليل الزي الرسمي</span>
+            </div>
+        </div>
+
+        <!-- قسم خاص بالطالب / الطالبة -->
+        <div class="border border-gray-300 rounded p-3 mb-4 bg-gray-50/50">
+            <h3 class="font-bold text-gray-900 mb-1 border-b pb-1">خاص بالطالب / الطالبة:</h3>
+            <p class="mb-2 leading-relaxed text-gray-700">
+                اسم الطالب/ة: <strong id="student-name" class="underline underline-offset-4 text-black">-</strong> 
+                | الصف: <strong id="grade-stage" class="underline underline-offset-4 text-black">-</strong><br>
+                نعم أنا الطالب/ة أطلعت على محتوى قواعد السلوك والمواظبة وبناءً عليه أتعهد أن ألتزم بالأنظمة والتعليمات الخاصة بقواعد السلوك والمواظبة والألتزام بالزي الرسمي للمدرسة.
+            </p>
+
+            <div class="mt-3">
+                <span class="font-bold text-gray-800 block mb-1">✍️ التوقيع (الطالب/ة):</span>
+                <div class="h-20 flex items-center justify-center bg-white border border-gray-300 rounded p-1">
+                    <img id="student-sig-img" class="max-h-full max-w-full object-contain hidden" alt="توقيع الطالب">
+                    <span id="no-student-sig" class="text-gray-400 text-xs">غير موثق</span>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1">التاريخ: <span id="student-sig-date">-</span></div>
+            </div>
+        </div>
+
+        <!-- قسم خاص بولي / ولية الأمر -->
+        <div class="border border-gray-300 rounded p-3 mb-4 bg-gray-50/50">
+            <h3 class="font-bold text-gray-900 mb-1 border-b pb-1">خاص بولي / ولية الأمر:</h3>
+            <p class="mb-2 leading-relaxed text-gray-700 text-[11px] md:text-xs">
+                نعم أنا ولي أمر الطالب/ة أطلعت على محتوى قواعد السلوك والمواظبة وبناءً عليه أتعهد أن أتعاون مع إدارة المدرسة في سبيل مصلحة ابني/ابنتي، لمتابعة التزامه/ا بالأنظمة والتعليمات الخاصة بقواعد السلوك والمواظبة، وأتعهد بالالتزام بالزي الرسمي حسب الدليل الموضح في الباركود المرفق.<br>
+                كما أوافق على نظام حماية الطفل، وأتحمل مسؤولية صحة أرقام التواصل التالية.
+            </p>
+
+            <div class="grid grid-cols-2 gap-2 text-xs mb-3 bg-white p-2 border rounded">
+                <div><strong>الاسم (ولي/ة الأمر):</strong> <span id="parent-name">-</span></div>
+                <div><strong>العمل:</strong> <span id="parent-job">-</span></div>
+                <div><strong>رقم الجوال:</strong> <span id="parent-phone" dir="ltr" class="font-mono">-</span></div>
+                <div><strong>رقم إضافي:</strong> <span id="parent-phone-extra" dir="ltr" class="font-mono">-</span></div>
+            </div>
+
+            <div>
+                <span class="font-bold text-gray-800 block mb-1">✍️ التوقيع (ولي/ة الأمر):</span>
+                <div class="h-20 flex items-center justify-center bg-white border border-gray-300 rounded p-1">
+                    <img id="parent-sig-img" class="max-h-full max-w-full object-contain hidden" alt="توقيع ولي الأمر">
+                    <span id="no-parent-sig" class="text-gray-400 text-xs">غير موثق</span>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1">التاريخ: <span id="parent-sig-date">-</span></div>
+            </div>
+        </div>
+
+        <!-- التذييل وحالة العقد واعتماد مدير المدرسة -->
+        <div class="flex justify-between items-center border-t border-gray-300 pt-3 text-xs">
+            <div>
+                <strong>مدير/ة المدرسة:</strong> <span id="school-manager" class="font-bold text-blue-900">-</span>
+                <div id="school-sig-box" class="mt-1 hidden">
+                    <img id="school-sig-img" class="h-12 object-contain" alt="توقيع المدير">
+                </div>
+            </div>
+            <div class="text-green-700 font-bold flex items-center gap-1">
+                <span>حالة العقد: تم التوقيع إلكترونياً</span> ☑️
+            </div>
+        </div>
+    </div>
+
     <!-- السكريبت المباشر لجلب البيانات -->
     <script>
         const SUPABASE_URL = 'https://fpfsdqgmtgeetwecxtpl.supabase.co';
