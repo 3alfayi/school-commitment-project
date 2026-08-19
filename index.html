@@ -125,16 +125,17 @@
         }  
        @media (max-width: 768px) {
   .cards-container {
-    flex-direction: column !important; 
-    align-items: center !important;    
-    gap: 20px !important;              
+    display: flex !important;          /* تفعيل الفليكس بوكس للجوال */
+    flex-direction: column !important; /* تحويل الترتيب لعمودي */
+    align-items: center !important;    /* توسيط الكروت */
+    gap: 20px !important;              /* مسافة مريحة بين الكرتين */
   }
   .card {
-    width: 90% !important;            
+    width: 90% !important;             /* جعل عرض الكرت مناسباً للشاشة */
     max-width: 100% !important;       
   }
 }
- 
+
     </style>
 </head>
 <body>
