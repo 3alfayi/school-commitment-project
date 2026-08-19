@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم المنصة - إدارة المدارس</title>
-    <link href="https://googleapis.com" rel="stylesheet">
-    <script src="https://jsdelivr.net"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --moe-navy: #002B49; --moe-green: #006747; --danger: #dc3545; --warning: #ffc107; --edit-blue: #0d6efd; }
         body { font-family: 'Tajawal', sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
@@ -121,6 +121,7 @@
                         <input type="email" id="edit_email" required>
                     </div>
 
+                    <!-- حقل كلمة المرور غير قابل للتعديل (Disabled) -->
                     <div class="form-group full-width">
                         <label>كلمة المرور (عرض فقط)</label>
                         <input type="text" id="edit_password" disabled>
@@ -134,8 +135,9 @@
             </form>
         </div>
     </div>
-    <script>
-        const SUPABASE_URL = 'https://supabase.co';
+
+   <script>
+        const SUPABASE_URL = 'https://fpfsdqgmtgeetwecxtpl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwZnNkcWdtdGdlZXR3ZWN4dHBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODk0NzYsImV4cCI6MjEwMjU2NTQ3Nn0.ofEm1s2OyFeey7D9ps_DtM4srB2Bt3qLEFkCp_q5VHo';
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -165,10 +167,10 @@
                 }
 
                 tableBody.innerHTML = schools.map(school => `
-                    <tr id="row-${school.id}">
+                    <tr>
                         <td><strong>${school.school_name || '-'}</strong></td>
                         <td>${school.principal_name || school.manager_name || '-'}</td>
-                        <td>${school.region || '-'} / ${school.edu_department || '-'}</td>
+                        <td>${school.region || school.edu_department || '-'}</td>
                         <td>${school.stage || school.grade_stage || '-'}</td>
                         <td>${school.email || '-'}</td>
                         <td>${school.password || '******'}</td>
@@ -248,6 +250,7 @@
             }
         }
 
+        // --- التعديل الجوهري هنا ---
         async function toggleSchoolStatus(id, currentStatus) {
             try {
                 const isSuspended = currentStatus === 'suspended';
@@ -267,70 +270,47 @@
         }
 
         async function deleteSchool(id) {
-            if (!id || id === 'undefined') {
-                alert('خطأ: لم يتم العثور على معرف (ID) صحيح لهذه المدرسة!');
-                return;
-            }
-            if (!confirm('هل أنت متأكد من حذف هذه المدرسة نهائياً؟')) return;
+    if (!id || id === 'undefined') {
+        alert('خطأ: لم يتم العثور على معرف (ID) صحيح لهذه المدرسة!');
+        return;
+    }
+    try {
+        const { error } = await supabaseClient
+            .from('schools')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert('فشل الحذف من قاعدة البيانات: ' + error.message);
+        } else {
+            alert('تم حذف المدرسة بنجاح');
             
-            try {
-                const { error } = await supabaseClient
-                    .from('schools')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) {
-                    alert('فشل الحذف من قاعدة البيانات: ' + error.message);
-                } else {
-                    alert('تم حذف المدرسة بنجاح');
-                    
-                    // إزالة السطر مباشرة وحالاً من الواجهة الرسومية للمتصفح دون انتظار
-                    const targetRow = document.getElementById(`row-${id}`);
-                    if (targetRow) {
-                        targetRow.remove();
-                    }
-                    
-                    localSchoolsData = localSchoolsData.filter(s => s.id !== id);
-                    if (localSchoolsData.length === 0) {
-                        document.getElementById('schoolsTableBody').innerHTML = '<tr><td colspan="10" style="text-align: center;">لا توجد مدارس مسجلة حتى الآن.</td></tr>';
-                    }
+            // 1. تحديث المصفوفة المحلية لحذف المدرسة منها فوراً
+            if (typeof localSchoolsData !== 'undefined') {
+                localSchoolsData = localSchoolsData.filter(s => s.id !== id);
+            }
+            
+            // 2. تحديث جدول الـ HTML وحذف السطر المختار برمجياً من الواجهة فوراً
+            const rows = document.querySelectorAll('table tbody tr');
+            rows.forEach(row => {
+                if (row.innerHTML.includes(id) || row.innerHTML.includes(`deleteSchool('${id}')`)) {
+                    row.remove();
                 }
-            } catch (err) {
-                alert('حدث خطأ غير متوقع أثناء الحذف');
-            }
-        }
+            });
 
-        async function toggleAllSchoolsStatus() {
-            if (!confirm('هل أنت متأكد من تعليق جميع الحسابات المسجلة حالياً؟')) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('schools')
-                    .update({ status: 'suspended', is_active: false })
-                    .neq('status', 'suspended'); 
-
-                if (error) throw error;
-                alert('تم تعليق جميع الحسابات المسجلة بنجاح!');
+            // 3. خيار احتياطي لتحديث البيانات بالكامل من السيرفر
+            if (typeof fetchSchools === 'function') {
                 fetchSchools();
-            } catch (err) {
-                alert('حدث خطأ أثناء تعليق الحسابات: ' + err.message);
+            } else {
+                location.reload(); // إعادة تنشيط الصفحة تلقائياً كحل أخير ومضمون 100%
             }
         }
+    } catch (err) {
+        alert('حدث خطأ غير متوقع أثناء الحذف');
+    }
+}
 
-        async function deleteAllSchools() {
-            if (!confirm('تحذير شديد: هل أنت متأكد من حذف جميع المدارس وحساباتها نهائياً من النظام؟ لا يمكن التراجع عن هذا الإجراء.')) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('schools')
-                    .delete()
-                    .neq('id', '00000000-0000-0000-0000-000000000000'); 
 
-                if (error) throw error;
-                alert('تم حذف جميع الحسابات والمدارس من النظام بنجاح!');
-                fetchSchools();
-            } catch (err) {
-                alert('حدث خطأ أثناء حذف جميع الحسابات: ' + err.message);
-            }
-        }
 
         function logout() {
             localStorage.removeItem('adminLoggedIn');
