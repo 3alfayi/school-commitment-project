@@ -329,12 +329,10 @@
                 let phoneFormatted = phone.replace(/[^0-9]/g, '');
                 if (phoneFormatted.startsWith('05')) phoneFormatted = '966' + phoneFormatted.substring(1);
                 
-                const pathSegments = window.location.pathname.split('/');
-        pathSegments.pop();
-        const siteUrl = window.location.origin + pathSegments.join('/');
-        const signLink = `${siteUrl}/student.html`;
-        const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الدخول بالهوية من خلال الرابط التالي:\n${signLink}`);
-        const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
+                const signLink = `https://github.io{s.id}`;
+const waMessage = encodeURIComponent(`المكرم ولي أمر الطالب (${studentName})، نأمل التكرم بالاطلاع وتوقيع العقد السلوكي عبر الرابط التالي:\n${signLink}`);
+const waUrl = `https://wa.me/${phoneFormatted}?text=${waMessage}`;
+
                 return `
                     <tr>
                         <td><b>${studentName}</b></td>
