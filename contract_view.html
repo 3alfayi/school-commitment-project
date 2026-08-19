@@ -173,10 +173,34 @@
                 document.getElementById('parent-phone').innerText = student.parent_phone || student.phone || '0000000000';
                 document.getElementById('parent-phone-extra').innerText = student.parent_phone_extra || '-';
 
-                // 4. التاريخ
-                const dateStr = student.signed_at || student.created_at || '1446هـ';
-                document.getElementById('student-sig-date').innerText = dateStr;
-                document.getElementById('parent-sig-date').innerText = dateStr;
+               // 4 // التاريخ
+const rawDate = student.signed_at || student.created_at;
+let dateStr = 'هـ1448';
+
+if (rawDate) {
+    try {
+        const dateObj = new Date(rawDate);
+        const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric'
+        });
+        const parts = formatter.formatToParts(dateObj);
+        let day = '', month = '', year = '';
+        for (const part of parts) {
+            if (part.type === 'day') day = part.value;
+            if (part.type === 'month') month = part.value;
+            if (part.type === 'year') year = part.value;
+        }
+        dateStr = `${year}/${month}/${day} هـ`;
+    } catch (e) {
+        dateStr = rawDate; // في حال حدوث خطأ يعرض التاريخ القديم مؤقتاً
+    }
+}
+
+document.getElementById('student-sig-date').innerText = dateStr;
+document.getElementById('parent-sig-date').innerText = dateStr;
+
 
                 // 5. التوقيعات (الطالب وولي الأمر)
                 const studentSig = student.student_signature || student.signature_url;
@@ -211,6 +235,32 @@
         }
 
         window.addEventListener('DOMContentLoaded', fetchExactStudentPage);
-    </script>
+   function convertToHijri(dateString) {
+    try {
+        if (!dateString) return "-";
+        const dateObj = new Date(dateString);
+        
+        const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric'
+        });
+        
+        const parts = formatter.formatToParts(dateObj);
+        let day = '', month = '', year = '';
+        
+        for (const part of parts) {
+            if (part.type === 'day') day = part.value;
+            if (part.type === 'month') month = part.value;
+            if (part.type === 'year') year = part.value;
+        }
+    
+        return `${year}/${month}/${day} هـ`;
+    } catch (e) {
+        return "-";
+    }
+}
+
+   </script>
 </body>
 </html>
