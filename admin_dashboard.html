@@ -283,18 +283,26 @@
         if (error) {
             alert('فشل الحذف من قاعدة البيانات: ' + error.message);
         } else {
-            alert('تم حذف المدرسة وحسابها بنجاح');
+            alert('تم حذف المدرسة بنجاح');
             
-            // 1. تحديث المصفوفة المحلية لحذف المدرسة من الشاشة فوراً
+            // 1. تحديث المصفوفة المحلية لحذف المدرسة منها فوراً
             if (typeof localSchoolsData !== 'undefined') {
                 localSchoolsData = localSchoolsData.filter(s => s.id !== id);
             }
             
-            // 2. إعادة بناء الجدول أو إنعاش الصفحة كخيار احتياطي
+            // 2. تحديث جدول الـ HTML وحذف السطر المختار برمجياً من الواجهة فوراً
+            const rows = document.querySelectorAll('table tbody tr');
+            rows.forEach(row => {
+                if (row.innerHTML.includes(id) || row.innerHTML.includes(`deleteSchool('${id}')`)) {
+                    row.remove();
+                }
+            });
+
+            // 3. خيار احتياطي لتحديث البيانات بالكامل من السيرفر
             if (typeof fetchSchools === 'function') {
                 fetchSchools();
             } else {
-                location.reload(); 
+                location.reload(); // إعادة تنشيط الصفحة تلقائياً كحل أخير ومضمون 100%
             }
         }
     } catch (err) {
