@@ -283,17 +283,25 @@
         if (error) {
             alert('فشل الحذف من قاعدة البيانات: ' + error.message);
         } else {
-            alert('تم حذف المدرسة بنجاح');
+            alert('تم حذف المدرسة وحسابها بنجاح');
+            
+            // 1. تحديث المصفوفة المحلية لحذف المدرسة من الشاشة فوراً
+            if (typeof localSchoolsData !== 'undefined') {
+                localSchoolsData = localSchoolsData.filter(s => s.id !== id);
+            }
+            
+            // 2. إعادة بناء الجدول أو إنعاش الصفحة كخيار احتياطي
             if (typeof fetchSchools === 'function') {
                 fetchSchools();
             } else {
-                location.reload();
+                location.reload(); 
             }
         }
     } catch (err) {
         alert('حدث خطأ غير متوقع أثناء الحذف');
     }
 }
+
 
 
         function logout() {
