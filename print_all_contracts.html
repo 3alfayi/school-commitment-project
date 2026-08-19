@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>طباعة جميع العقود الموقعة</title>
-    <!-- تم تصحيح المسار ليعود للمجلد الرئيسي أولاً لضمان تحميل التنسيق -->
-    <link rel="stylesheet" href="https://github.io">
+    <!-- مسار التنسيق المباشر والمستقر -->
+    <link rel="stylesheet" href="https://github.io"> 
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -47,13 +47,11 @@
     <div id="loading" class="loading-screen">جاري جلب العقود الموقعة وتجهيزها للطباعة...</div>
     <div id="all-contracts-container"></div>
 
-    <!-- استدعاء مكتبة Supabase الرسمية المستقرة -->
-<script src="https://jsdelivr.net"></script>
+    <!-- نستخدم نوع type="module" للتوافق التام والكامل مع ملف supabaseClient الخاص بك -->
+    <script type="module">
+        // استيراد العميل مباشرة بنفس الطريقة المستخدمة في باقي صفحات مشروعك الناجحة
+        import { supabase } from 'https://github.io';
 
-<!-- استدعاء ملف العميل بالمسار الكامل المباشر لمشروعك على جيتهاب -->
-<script src="https://github.io"></script>
-
-    <script>
         function convertToHijri(dateString) {
             try {
                 if (!dateString) return "1448 هـ";
@@ -89,16 +87,13 @@
                     return;
                 }
 
-                // تحديد المتغير الصحيح المعرف في ملف supabaseClient.js لديك بدون شرطة سفلية
-                const client = typeof supabase !== 'undefined' ? supabase : _supabase;
-
-                if (!client) {
-                    loadingDiv.innerText = "خطأ: لم يتم الاتصال بقاعدة البيانات بشكل صحيح.";
+                if (!supabase) {
+                    loadingDiv.innerText = "خطأ: فشل استيراد محرك الاتصال بقاعدة البيانات.";
                     return;
                 }
 
-                // جلب الطلاب الموقّعين للمدرسة الحالية
-                const { data: students, error } = await client
+                // جلب الطلاب الموقّعين التابعين للمدرسة الحالية من قاعدة البيانات
+                const { data: students, error } = await supabase
                     .from('students')
                     .eq('status', 'تم التوقيع')
                     .eq('school_id', schoolId); 
@@ -110,6 +105,7 @@
                     return;
                 }
 
+                // بناء الاستمارات بشكل ديناميكي تكراري
                 students.forEach(student => {
                     const hijriDate = convertToHijri(student.signed_at || student.created_at);
                     
@@ -137,9 +133,10 @@
                     `;
                 });
 
+                // إخفاء شاشة التحميل بعد نجاح البناء
                 loadingDiv.style.display = 'none';
 
-                // أمر الطباعة التلقائي
+                // إطلاق أمر الطباعة التلقائي للمتصفح
                 setTimeout(() => {
                     window.print();
                 }, 1000);
@@ -150,6 +147,7 @@
             }
         }
 
+        // تشغيل الدالة فور اكتمال تحميل الصفحة
         document.addEventListener('DOMContentLoaded', loadAndPrintAll);
     </script>
 </body>
